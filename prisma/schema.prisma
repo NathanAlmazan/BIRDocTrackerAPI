@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BirOffices {
+  officeId        Int         @id @default(autoincrement())
+  officeName      String      @db.VarChar(100)
+  sections        OfficeSections[]
+}
+
+model OfficeSections {
+  sectionId       Int         @id @default(autoincrement())
+  sectionName     String      @db.VarChar(100)
+  officeId        Int
+  office          BirOffices  @relation(fields: [officeId], references: [officeId], onDelete: Cascade)
+  employees       UserAccounts[]
+  threads         Thread[]
+}
+
+model DocumentTypes {
+  docId           Int         @id @default(autoincrement())
+  docType         String      @db.VarChar(100)
+  threads         Thread[]
+}
+
+model DocumentStatus {
+  statusId        Int         @id @default(autoincrement())
+  statusLabel     String      @db.VarChar(50)
+  threads         Thread[]
+}
+
+model UserAccounts {
+  accountId       String      @id @db.Uuid @default(uuid())
+  firstName       String      @db.VarChar(50)
+  lastName        String      @db.VarChar(50)
+  position        String      @db.VarChar(50)
+  officeId        Int
+  password        String
+  resetCode       String?     @db.VarChar(6)
+  active          Boolean     @default(true)
+  office          OfficeSections   @relation(fields: [officeId], references: [sectionId])
+  threads         Thread[]
+  messages        Messages[]
+}
+
+model Thread {
+  refId           String          @id @db.Uuid @default(uuid())    
+  subject         String          @db.VarChar(255)
+  revision        Int             @default(0)
+  authorId        String          @db.Uuid
+  statusId        Int
+  recipientId     Int
+  docTypeId       Int
+  attachments     Boolean         @default(true)
+  completed       Boolean         @default(false)
+  dateCreated     DateTime        @db.Timestamp(3) @default(now())
+  dateUpdated     DateTime        @db.Timestamp(3) @updatedAt
+  dateDue         DateTime
+  author          UserAccounts    @relation(fields: [authorId], references: [accountId])
+  status          DocumentStatus  @relation(fields: [statusId], references: [statusId])
+  recipient       OfficeSections  @relation(fields: [recipientId], references: [sectionId])
+  docType         DocumentTypes   @relation(fields: [docTypeId], references: [docId])
+  messages        Messages[]
+}
+
+model Messages {
+  msgId           BigInt          @id @default(autoincrement())
+  refId           String          @db.Uuid
+  senderId        String          @db.Uuid
+  message         String      
+  dateSent        DateTime        @db.Timestamp(3) @default(now())
+  sender          UserAccounts    @relation(fields: [senderId], references: [accountId])
+  thread          Thread          @relation(fields: [refId], references: [refId])
+  files           MessageFiles[]
+}
+
+model MessageFiles {
+  fileId          BigInt          @id @default(autoincrement())
+  msgId           BigInt
+  fileUrl         String
+  fileName        String          @db.VarChar(150)
+  fileType        String          @db.VarChar(20)
+  message         Messages        @relation(fields: [msgId], references: [msgId])
+}

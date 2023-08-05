@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Thread" ALTER COLUMN "subject" SET DATA TYPE VARCHAR(255);
