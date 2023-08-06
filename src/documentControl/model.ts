@@ -39,6 +39,19 @@ export const DocumentStatusObject: GraphQLObjectType = new GraphQLObjectType<Doc
                     }
                 })
             }
+        },
+        threadCount: {
+            type: GraphQLInt,
+            resolve: async (parent) => {
+                const threads = await dbClient.thread.aggregate({
+                    where: {
+                        statusId: parent.statusId
+                    },
+                    _count: true
+                })
+
+                return threads._count;
+            }
         }
     })
 })
@@ -61,6 +74,19 @@ export const DocumentTypeObject: GraphQLObjectType = new GraphQLObjectType<Docum
                         docTypeId: parent.docId
                     }
                 })
+            }
+        },
+        threadCount: {
+            type: GraphQLInt,
+            resolve: async (parent) => {
+                const threads = await dbClient.thread.aggregate({
+                    where: {
+                        docTypeId: parent.docId
+                    },
+                    _count: true
+                })
+
+                return threads._count;
             }
         }
     })
@@ -231,6 +257,35 @@ export const DocumentFilesObject: GraphQLObjectType = new GraphQLObjectType<Mess
         },
         fileType: {
             type: new GraphQLNonNull(GraphQLString)
+        }
+    })
+})
+
+export const AnalyticsObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
+    name: 'Analytics',
+    fields: () => ({
+        status: {
+            type: DocumentStatusObject,
+            resolve: async (parent) => {
+                return await dbClient.documentStatus.findUnique({
+                    where: {
+                        statusId: parent.statusId
+                    }
+                })
+            }
+        },
+        docType: {
+            type: DocumentTypeObject,
+            resolve: async (parent) => {
+                return await dbClient.documentTypes.findUnique({
+                    where: {
+                        docId: parent.docTypeId
+                    }
+                })
+            }
+        },
+        count: {
+            type: GraphQLInt
         }
     })
 })

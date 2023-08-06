@@ -81,7 +81,8 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
             refId: args.data.threadId
         },
         data: {
-            revision: thread.revision + 1
+            revision: thread.revision + 1,
+            dateUpdated: new Date().toISOString()
         }
     })
 
@@ -192,4 +193,131 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, comp
             dateDue: 'asc'
         }
     })
+}
+
+export const resolveStatusAnalytics = async (_: any, args: { officeId: number, completed: boolean }) => {
+    // fetch section
+    const section = await dbClient.officeSections.findUnique({
+        where: {
+            sectionId: args.officeId
+        },
+        select: {
+            sectionId: true,
+            officeId: true
+        }
+    })
+
+    if (!section) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // fetch office default
+    const defaultOffice = await dbClient.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: section.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    })
+
+    if (!defaultOffice) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const analytics = await dbClient.thread.groupBy({
+        by: ['docTypeId'],
+        where: {
+            OR: [
+                {
+                    recipientId: section.sectionId
+                },
+                {
+                    recipientId: defaultOffice.sectionId
+                }
+            ],
+            completed: args.completed
+        },
+        _count: {
+            refId: true
+        }
+    })
+
+    return analytics.map(data => ({
+        statusId: null,
+        docTypeId: data.docTypeId,
+        count: data._count.refId
+    }))
+}
+
+export const resolveThreadTypeAnalytics = async (_: any, args: { officeId: number, startDate: string, endDate: string }) => {
+    // fetch section
+    const section = await dbClient.officeSections.findUnique({
+        where: {
+            sectionId: args.officeId
+        },
+        select: {
+            sectionId: true,
+            officeId: true
+        }
+    })
+
+    if (!section) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // fetch office default
+    const defaultOffice = await dbClient.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: section.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    })
+
+    if (!defaultOffice) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const analytics = await dbClient.thread.groupBy({
+        by: ['statusId', 'docTypeId'],
+        where: {
+            OR: [
+                {
+                    recipientId: section.sectionId
+                },
+                {
+                    recipientId: defaultOffice.sectionId
+                }
+            ],
+            dateCreated: {
+                gte: new Date(args.startDate).toISOString(),
+                lte: new Date(args.endDate).toISOString()
+            }
+        },
+        _count: {
+            refId: true
+        }
+    })
+
+    return analytics.map(data => ({
+        statusId: data.statusId,
+        docTypeId: data.docTypeId,
+        count: data._count.refId
+    }))
 }

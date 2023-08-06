@@ -6,10 +6,11 @@ import {
     GraphQLString
 } from "graphql";
 import { 
+    AnalyticsObject,
     DocumentStatusObject, 
     DocumentTypeObject, 
     MessagesObject, 
-    ThreadObject 
+    ThreadObject
 } from "./model";
 import { 
     resolveAddThreadStatus, 
@@ -23,6 +24,8 @@ import {
     resolveGetCreatedThread, 
     resolveGetInboxThread, 
     resolveGetThreadById, 
+    resolveStatusAnalytics, 
+    resolveThreadTypeAnalytics, 
     resolveUpdateThreadStatus 
 } from "./controller";
 import { 
@@ -152,4 +155,32 @@ export const queryFields = {
         },
         resolve: resolveGetCreatedThread
     },
+    // ================== Analytics ======================== //
+    getStatusAnalytics: {
+        type: new GraphQLList(AnalyticsObject),
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt),
+            },
+            completed: {
+                type: new GraphQLNonNull(GraphQLBoolean),
+            }
+        },
+        resolve: resolveStatusAnalytics
+    },
+    getThreadTypeAnalytics: {
+        type: new GraphQLList(AnalyticsObject),
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            startDate: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            endDate: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveThreadTypeAnalytics
+    }
 }
