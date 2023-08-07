@@ -50,6 +50,9 @@ export const OfficeSectionObject: GraphQLObjectType = new GraphQLObjectType<Offi
         sectionName: {
             type: new GraphQLNonNull(GraphQLString)
         },
+        admin: {
+            type: new GraphQLNonNull(GraphQLBoolean)
+        },
         sectionOffice: {
             type: BirOfficeObject,
             resolve: async (parent) => {

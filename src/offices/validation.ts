@@ -151,3 +151,51 @@ export const AccountUpdateProfileInput: GraphQLInputObjectType = new GraphQLInpu
         }
     })
 })
+
+
+export interface UserChangePassword {
+    firstName: string;
+    lastName: string;
+    officeId: number;
+    resetCode: string;
+    password: string;
+}
+
+export const UserChangePasswordInput: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: "UserChangePasswordInput",
+    fields: () => ({
+        firstName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        lastName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        officeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        resetCode: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        password: {
+            type: new GraphQLNonNull(GraphQLString)
+        }
+    })
+})
+
+export const UserLoginInputInput: GraphQLInputObjectType = new GraphQLInputObjectType({
+    name: 'UserLoginInputInput',
+    fields: () => ({
+        firstName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        lastName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        officeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        password: {
+            type: new GraphQLNonNull(GraphQLString)
+        }
+    })
+})

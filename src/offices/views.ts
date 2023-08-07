@@ -6,6 +6,7 @@ import {
 } from "graphql";
 import { 
     resolveAddOffice, 
+    resolveChangePassword, 
     resolveDeleteOffice, 
     resolveGetAccountByUid, 
     resolveGetAllOfficeSections, 
@@ -13,7 +14,8 @@ import {
     resolveGetOfficeById,
     resolveRegisterAccount,
     resolveSetAccountInactive,
-    resolveUpdateAccount
+    resolveUpdateAccount,
+    resolveUserLogin
 } from "./controller";
 import { 
     BirOfficeObject, 
@@ -23,7 +25,9 @@ import {
 import { 
     AccountRegisterInput, 
     AccountUpdateInput, 
-    BirOfficeInput 
+    BirOfficeInput, 
+    UserChangePasswordInput,
+    UserLoginInputInput
 } from "./validation";
 
 
@@ -75,6 +79,24 @@ export const mutationFields = {
             }
         },
         resolve: resolveSetAccountInactive
+    },
+    changePassword: {
+        type: UserAccountObject,
+        args: {
+            data: {
+                type: new GraphQLNonNull(UserChangePasswordInput)
+            }
+        },
+        resolve: resolveChangePassword
+    },
+    userLogin: {
+        type: UserAccountObject,
+        args: {
+            data: {
+                type: new GraphQLNonNull(UserLoginInputInput)
+            }
+        },
+        resolve: resolveUserLogin
     }
 }
 

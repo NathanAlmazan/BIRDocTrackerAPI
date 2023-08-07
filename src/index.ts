@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import cors from 'cors';
+import webpush from 'web-push';
 import bodyParser from "body-parser";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from '@apollo/server/standalone';
@@ -18,6 +19,7 @@ import {
     docControlMutationFields, 
     docControlQueryFields 
 } from "./documentControl";
+import dbClient from "./database";
 
 
 // ====================== Apollo Server ======================= //
@@ -81,6 +83,44 @@ app.post("/upload", upload.array("files"), (req, res) => {
     }
     return res.status(400).json({ message: "Failed to upload." });
 });
+
+//setting vapid keys details
+webpush.setVapidDetails("mailto: <nathan.almazan1004@gmail.com>", process.env.PUBLIC_VAPID_KEY as string, process.env.PRIVATE_VAPID_KEY as string);
+
+//subscribe route
+app.post('/subscribe/:uid', async (req, res) => {
+    // get push subscription object from the request
+    const uid = req.params.uid;
+    const subscription = req.body;
+
+    const payload = JSON.stringify(subscription);
+
+    const account = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: uid
+        },
+        select: {
+            accountId: true,
+            subscription: true
+        }
+    })
+
+    if (!account) return res.status(400).json({ message: "User not found." });
+
+    await dbClient.userAccounts.update({
+        where: {
+            accountId: uid
+        },
+        data: {
+            subscription: payload
+        }
+    })
+
+    // send status 201 for the request
+    return res.status(201).json({
+        message: 'User Subscribed.'
+    })
+})
 
 app.listen(port, () => {
     console.log("Media Server running at",  `http://localhost:${port}`);

@@ -20,6 +20,7 @@ model OfficeSections {
   sectionId       Int         @id @default(autoincrement())
   sectionName     String      @db.VarChar(100)
   officeId        Int
+  admin           Boolean     @default(false)
   office          BirOffices  @relation(fields: [officeId], references: [officeId], onDelete: Cascade)
   employees       UserAccounts[]
   threads         Thread[]
@@ -46,6 +47,7 @@ model UserAccounts {
   password        String
   resetCode       String?     @db.VarChar(6)
   active          Boolean     @default(true)
+  subscription    String?
   office          OfficeSections   @relation(fields: [officeId], references: [sectionId])
   threads         Thread[]
   messages        Messages[]
@@ -76,6 +78,7 @@ model Messages {
   refId           String          @db.Uuid
   senderId        String          @db.Uuid
   message         String      
+  read            Boolean         @default(false)
   dateSent        DateTime        @db.Timestamp(3) @default(now())
   sender          UserAccounts    @relation(fields: [senderId], references: [accountId])
   thread          Thread          @relation(fields: [refId], references: [refId])

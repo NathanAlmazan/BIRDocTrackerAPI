@@ -23,7 +23,9 @@ import {
     resolveGetAllThreadTypes, 
     resolveGetCreatedThread, 
     resolveGetInboxThread, 
+    resolveGetNotifications, 
     resolveGetThreadById, 
+    resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
     resolveThreadTypeAnalytics, 
     resolveUpdateThreadStatus 
@@ -108,6 +110,18 @@ export const mutationFields = {
             }
         },
         resolve: resolveUpdateThreadStatus
+    },
+    setMessageAsRead: {
+        type: MessagesObject,
+        args: {
+            threadId: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        }, 
+        resolve: resolveSetMessageAsRead
     }
 }
 
@@ -155,6 +169,16 @@ export const queryFields = {
         },
         resolve: resolveGetCreatedThread
     },
+    getUserNotifications: {
+        type: new GraphQLList(MessagesObject),
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveGetNotifications
+    },
+
     // ================== Analytics ======================== //
     getStatusAnalytics: {
         type: new GraphQLList(AnalyticsObject),

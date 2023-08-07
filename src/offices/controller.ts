@@ -1,8 +1,11 @@
+import { GraphQLError } from "graphql";
+import bcrypt from "bcrypt";
 import dbClient from "../database";
 import { 
     AccountRegisterInput,
     AccountUpdateInput,
-    BirOfficeInput
+    BirOfficeInput,
+    UserChangePassword
 } from "./validation";
 
 
@@ -98,4 +101,67 @@ export const resolveGetAccountByUid = async (_: any, args: { uid: string }) => {
             accountId: args.uid
         }
     })
+}
+
+// ===================================== Authentication ====================================== //
+
+export const resolveChangePassword = async (_: any, args: { data: UserChangePassword }) => {
+    const account = await dbClient.userAccounts.findFirst({
+        where: {
+            firstName: args.data.firstName,
+            lastName: args.data.lastName,
+            officeId: args.data.officeId,
+            resetCode: args.data.resetCode
+        }
+    })
+
+    if (!account) throw new GraphQLError('User does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const encrypted = await bcrypt.hash(args.data.password, 12);
+
+    return await dbClient.userAccounts.update({
+        where: {
+            accountId: account.accountId
+        },
+        data: {
+            password: encrypted,
+            resetCode: (Math.random() + 1).toString(36).substring(2, 8)
+        }
+    })
+}
+
+export const resolveUserLogin = async (_: any, args: { data: Omit<UserChangePassword, "resetCode"> }) => {
+    const account = await dbClient.userAccounts.findFirst({
+        where: {
+            firstName: args.data.firstName,
+            lastName: args.data.lastName,
+            officeId: args.data.officeId
+        }
+    })
+
+    if (!account) throw new GraphQLError('User does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    if (account.password.length === 0) throw new GraphQLError('User is not yet registered.', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const authorized = await bcrypt.compare(args.data.password, account.password);
+
+    if (!authorized) throw new GraphQLError('Wrong Password', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    return account;
 }
