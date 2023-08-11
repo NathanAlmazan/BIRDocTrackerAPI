@@ -127,7 +127,19 @@ app.post('/subscribe/:uid', async (req, res) => {
 })
 
 // Create the HTTPS or HTTP server, per configuration
-let httpServer = http.createServer(app);
+let httpServer: https.Server | http.Server;
+try {
+    httpServer = https.createServer(
+        {
+        key: fs.readFileSync(`/etc/ssl/private.key`),
+        cert: fs.readFileSync(`/etc/ssl/certificate.crt`),
+        }, app);
+    console.log('Server is HTTPS');
+} catch(err) {
+    console.log('Server is HTTP');
+    console.log(err);
+    httpServer = http.createServer(app);
+}
 
 const startServer = async () => {
     await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
