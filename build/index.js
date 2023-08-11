@@ -69,7 +69,7 @@ app.post("/upload", upload.array("files"), (req, res) => {
         const files = req.files;
         return res.status(200).json({ files: files.map(file => ({
                 fileName: file.originalname,
-                fileUrl: `http://birtracker.nat911.com/assets/media/${file.filename}`,
+                fileUrl: `https://birtracker.nat911.com/api/media/${file.filename}`,
                 fileType: file.mimetype
             })) });
     }
