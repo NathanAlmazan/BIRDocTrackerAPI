@@ -113,8 +113,8 @@ app.post('/subscribe/:uid', (req, res) => __awaiter(void 0, void 0, void 0, func
 let httpServer;
 try {
     httpServer = https_1.default.createServer({
-        key: fs_1.default.readFileSync(`/etc/ssl/certificate.crt`),
-        cert: fs_1.default.readFileSync(`/etc/ssl/private.key`),
+        key: fs_1.default.readFileSync(`/etc/ssl/private.key`),
+        cert: fs_1.default.readFileSync(`/etc/ssl/certificate.crt`),
     }, app);
     console.log('Server is HTTPS');
 }
