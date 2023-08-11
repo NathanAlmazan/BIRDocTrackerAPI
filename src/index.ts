@@ -20,7 +20,10 @@ import {
     docControlQueryFields 
 } from "./documentControl";
 import dbClient from "./database";
+import dotenv from 'dotenv';
 
+
+dotenv.config();
 
 // ====================== Apollo Server ======================= //
 
