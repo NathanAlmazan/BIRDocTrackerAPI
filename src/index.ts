@@ -6,7 +6,7 @@ import cors from 'cors';
 import webpush from 'web-push';
 import bodyParser from "body-parser";
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { expressMiddleware } from '@apollo/server/express4';
 import { 
     GraphQLObjectType, 
     GraphQLSchema 
@@ -21,6 +21,9 @@ import {
 } from "./documentControl";
 import dbClient from "./database";
 import dotenv from 'dotenv';
+import http from 'http';
+import https from 'https';
+import fs from 'fs';
 
 
 dotenv.config();
@@ -46,20 +49,18 @@ const server = new ApolloServer({
     schema
 });
 
-startStandaloneServer(server, {
-    listen: { port: 8080 },
-}).then(({ url }) => {
-    console.log("Apollo Server running at", url)   
-})
-
 // ====================== Express Server ======================= //
 const app = express();
-const port = 4000;
+const port = 8080;
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/media', express.static(path.join(__dirname, 'uploads')));
+
+server.start().then(() => {
+    app.use('/graphql', cors<cors.CorsRequest>(), bodyParser.json(), expressMiddleware(server));
+}).catch(err => console.error(err));
 
 const storage = multer.diskStorage({ 
     destination: (req, file, callback) => {
@@ -125,8 +126,26 @@ app.post('/subscribe/:uid', async (req, res) => {
     })
 })
 
-app.listen(port, () => {
-    console.log("Media Server running at",  `http://localhost:${port}`);
-}).on("error", (err: Error) => {
-    console.log("Error", err.message);
-});
+// Create the HTTPS or HTTP server, per configuration
+let httpServer: https.Server | http.Server;
+try {
+    httpServer = https.createServer(
+        {
+        key: fs.readFileSync(`/etc/ssl/certificate.crt`),
+        cert: fs.readFileSync(`/etc/ssl/private.key`),
+        }, app);
+    console.log('Server is HTTPS');
+} catch(err) {
+    console.log('Server is HTTP');
+    httpServer = http.createServer(app);
+}
+
+const startServer = async () => {
+    await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
+}
+
+startServer().then(() => {
+    console.log('Server ready on port', port);
+}).catch(err => {
+    console.log(err);
+})

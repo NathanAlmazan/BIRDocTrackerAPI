@@ -20,12 +20,15 @@ const cors_1 = __importDefault(require("cors"));
 const web_push_1 = __importDefault(require("web-push"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const server_1 = require("@apollo/server");
-const standalone_1 = require("@apollo/server/standalone");
+const express4_1 = require("@apollo/server/express4");
 const graphql_1 = require("graphql");
 const offices_1 = require("./offices");
 const documentControl_1 = require("./documentControl");
 const database_1 = __importDefault(require("./database"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const http_1 = __importDefault(require("http"));
+const https_1 = __importDefault(require("https"));
+const fs_1 = __importDefault(require("fs"));
 dotenv_1.default.config();
 // ====================== Apollo Server ======================= //
 const RootMutation = new graphql_1.GraphQLObjectType({
@@ -43,18 +46,16 @@ const schema = new graphql_1.GraphQLSchema({
 const server = new server_1.ApolloServer({
     schema
 });
-(0, standalone_1.startStandaloneServer)(server, {
-    listen: { port: 8080 },
-}).then(({ url }) => {
-    console.log("Apollo Server running at", url);
-});
 // ====================== Express Server ======================= //
 const app = (0, express_1.default)();
-const port = 4000;
+const port = 8080;
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 app.use('/media', express_1.default.static(path_1.default.join(__dirname, 'uploads')));
+server.start().then(() => {
+    app.use('/graphql', (0, cors_1.default)(), body_parser_1.default.json(), (0, express4_1.expressMiddleware)(server));
+}).catch(err => console.error(err));
 const storage = multer_1.default.diskStorage({
     destination: (req, file, callback) => {
         callback(null, path_1.default.join(__dirname, 'uploads'));
@@ -108,9 +109,25 @@ app.post('/subscribe/:uid', (req, res) => __awaiter(void 0, void 0, void 0, func
         message: 'User Subscribed.'
     });
 }));
-app.listen(port, () => {
-    console.log("Media Server running at", `http://localhost:${port}`);
-}).on("error", (err) => {
-    console.log("Error", err.message);
+// Create the HTTPS or HTTP server, per configuration
+let httpServer;
+try {
+    httpServer = https_1.default.createServer({
+        key: fs_1.default.readFileSync(`/etc/ssl/certificate.crt`),
+        cert: fs_1.default.readFileSync(`/etc/ssl/private.key`),
+    }, app);
+    console.log('Server is HTTPS');
+}
+catch (err) {
+    console.log('Server is HTTP');
+    httpServer = http_1.default.createServer(app);
+}
+const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield new Promise((resolve) => httpServer.listen({ port: port }, resolve));
+});
+startServer().then(() => {
+    console.log('Server ready on port', port);
+}).catch(err => {
+    console.log(err);
 });
 //# sourceMappingURL=index.js.map
