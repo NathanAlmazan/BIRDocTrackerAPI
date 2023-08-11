@@ -137,6 +137,7 @@ try {
     console.log('Server is HTTPS');
 } catch(err) {
     console.log('Server is HTTP');
+    console.log(err);
     httpServer = http.createServer(app);
 }
 

@@ -120,6 +120,7 @@ try {
 }
 catch (err) {
     console.log('Server is HTTP');
+    console.log(err);
     httpServer = http_1.default.createServer(app);
 }
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
