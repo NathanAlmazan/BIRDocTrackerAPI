@@ -27,8 +27,6 @@ const documentControl_1 = require("./documentControl");
 const database_1 = __importDefault(require("./database"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const http_1 = __importDefault(require("http"));
-const https_1 = __importDefault(require("https"));
-const fs_1 = __importDefault(require("fs"));
 dotenv_1.default.config();
 // ====================== Apollo Server ======================= //
 const RootMutation = new graphql_1.GraphQLObjectType({
@@ -110,19 +108,7 @@ app.post('/subscribe/:uid', (req, res) => __awaiter(void 0, void 0, void 0, func
     });
 }));
 // Create the HTTPS or HTTP server, per configuration
-let httpServer;
-try {
-    httpServer = https_1.default.createServer({
-        key: fs_1.default.readFileSync(`/etc/ssl/private.key`),
-        cert: fs_1.default.readFileSync(`/etc/ssl/certificate.crt`),
-    }, app);
-    console.log('Server is HTTPS');
-}
-catch (err) {
-    console.log('Server is HTTP');
-    console.log(err);
-    httpServer = http_1.default.createServer(app);
-}
+let httpServer = http_1.default.createServer(app);
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     yield new Promise((resolve) => httpServer.listen({ port: port }, resolve));
 });
