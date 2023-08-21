@@ -133,7 +133,7 @@ const resolveCreateMessage = (_, args) => __awaiter(void 0, void 0, void 0, func
     const payload = JSON.stringify({
         title: `${sender.firstName} ${sender.lastName} — ${args.data.message}`,
         body: thread.subject,
-        icon: 'https://res.cloudinary.com/ddpqji6uq/image/upload/v1672565207/eye_road_wc5mwp.webp'
+        icon: 'https://res.cloudinary.com/ddpqji6uq/image/upload/v1691402859/bir_logo_hdniut.png'
     });
     // if author send to notification to recipient
     if (thread.authorId === args.data.senderId) {
