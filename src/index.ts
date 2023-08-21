@@ -27,6 +27,8 @@ import {
 } from "./documentControl";
 import dbClient from "./database";
 
+dotenv.config();
+
 // Create the schema, which will be used separately by ApolloServer and
 // the WebSocket server.
 const RootMutation: GraphQLObjectType = new GraphQLObjectType({
