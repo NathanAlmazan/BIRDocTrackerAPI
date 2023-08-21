@@ -70,6 +70,15 @@ exports.mutationFields = {
             }
         },
         resolve: controller_1.resolveUserLogin
+    },
+    addRole: {
+        type: model_1.RoleObject,
+        args: {
+            name: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveAddRole
     }
 };
 exports.queryFields = {
@@ -100,6 +109,11 @@ exports.queryFields = {
             }
         },
         resolve: controller_1.resolveGetAccountByUid
+    },
+    // =============================== User Role Queries ======================================= //
+    getAllRoles: {
+        type: new graphql_1.GraphQLList(model_1.RoleObject),
+        resolve: controller_1.resolveGetAllRoles
     }
 };
 //# sourceMappingURL=views.js.map

@@ -20,7 +20,6 @@ model OfficeSections {
   sectionId       Int         @id @default(autoincrement())
   sectionName     String      @db.VarChar(100)
   officeId        Int
-  admin           Boolean     @default(false)
   office          BirOffices  @relation(fields: [officeId], references: [officeId], onDelete: Cascade)
   employees       UserAccounts[]
   threads         Thread[]
@@ -38,17 +37,25 @@ model DocumentStatus {
   threads         Thread[]
 }
 
+model Roles {
+  roleId          Int         @id @default(autoincrement())
+  roleName        String      @db.VarChar(100)
+  superuser       Boolean     @default(false)
+  accounts        UserAccounts[]      
+}
+
 model UserAccounts {
   accountId       String      @id @db.Uuid @default(uuid())
   firstName       String      @db.VarChar(50)
   lastName        String      @db.VarChar(50)
-  position        String      @db.VarChar(50)
   officeId        Int
   password        String
+  roleId          Int
   resetCode       String?     @db.VarChar(6)
   active          Boolean     @default(true)
   subscription    String?
   office          OfficeSections   @relation(fields: [officeId], references: [sectionId])
+  role            Roles            @relation(fields: [roleId], references: [roleId])
   threads         Thread[]
   messages        Messages[]
 }

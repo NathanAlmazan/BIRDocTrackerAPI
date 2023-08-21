@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JWTAuthenticationObject = exports.UserAccountObject = exports.OfficeSectionObject = exports.BirOfficeObject = void 0;
+exports.JWTAuthenticationObject = exports.UserAccountObject = exports.RoleObject = exports.OfficeSectionObject = exports.BirOfficeObject = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = __importDefault(require("../database"));
 const graphql_1 = require("graphql");
@@ -32,6 +32,9 @@ exports.BirOfficeObject = new graphql_1.GraphQLObjectType({
                 return yield database_1.default.officeSections.findMany({
                     where: {
                         officeId: parent.officeId
+                    },
+                    orderBy: {
+                        sectionName: 'asc'
                     }
                 });
             })
@@ -74,6 +77,21 @@ exports.OfficeSectionObject = new graphql_1.GraphQLObjectType({
         }
     })
 });
+exports.RoleObject = new graphql_1.GraphQLObjectType({
+    name: "UserRoles",
+    description: "BIR User Roles",
+    fields: () => ({
+        roleId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        roleName: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        superuser: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
+        }
+    })
+});
 exports.UserAccountObject = new graphql_1.GraphQLObjectType({
     name: "UserAccount",
     description: "BIR Employees accounts",
@@ -87,8 +105,15 @@ exports.UserAccountObject = new graphql_1.GraphQLObjectType({
         lastName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
-        position: {
-            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        role: {
+            type: new graphql_1.GraphQLNonNull(exports.RoleObject),
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield database_1.default.roles.findUnique({
+                    where: {
+                        roleId: parent.roleId
+                    }
+                });
+            })
         },
         resetCode: {
             type: graphql_1.GraphQLString

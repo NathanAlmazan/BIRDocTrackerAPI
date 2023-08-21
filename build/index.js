@@ -13,47 +13,78 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = require("lodash");
-const express_1 = __importDefault(require("express"));
-const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
-const cors_1 = __importDefault(require("cors"));
-const web_push_1 = __importDefault(require("web-push"));
-const body_parser_1 = __importDefault(require("body-parser"));
 const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
+const drainHttpServer_1 = require("@apollo/server/plugin/drainHttpServer");
+const http_1 = require("http");
+const express_1 = __importDefault(require("express"));
+const web_push_1 = __importDefault(require("web-push"));
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
+const ws_1 = require("ws");
+const ws_2 = require("graphql-ws/lib/use/ws");
+const body_parser_1 = __importDefault(require("body-parser"));
+const cors_1 = __importDefault(require("cors"));
 const graphql_1 = require("graphql");
+// project imports
 const offices_1 = require("./offices");
 const documentControl_1 = require("./documentControl");
 const database_1 = __importDefault(require("./database"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const http_1 = __importDefault(require("http"));
-dotenv_1.default.config();
-// ====================== Apollo Server ======================= //
+// Create the schema, which will be used separately by ApolloServer and
+// the WebSocket server.
 const RootMutation = new graphql_1.GraphQLObjectType({
-    name: "RootMutation",
+    name: "Mutation",
     fields: () => ((0, lodash_1.merge)(offices_1.officesMutationFields, documentControl_1.docControlMutationFields))
 });
 const RootQueries = new graphql_1.GraphQLObjectType({
-    name: "RootQuery",
+    name: "Query",
     fields: () => ((0, lodash_1.merge)(offices_1.officesQueryFields, documentControl_1.docControlQueryFields))
 });
 const schema = new graphql_1.GraphQLSchema({
     mutation: RootMutation,
     query: RootQueries
 });
-const server = new server_1.ApolloServer({
-    schema
-});
-// ====================== Express Server ======================= //
+// Create an Express app and HTTP server; we will attach both the WebSocket
+// server and the ApolloServer to this HTTP server.
 const app = (0, express_1.default)();
-const port = 8080;
+const httpServer = (0, http_1.createServer)(app);
+// Create our WebSocket server using the HTTP server we just set up.
+const wsServer = new ws_1.WebSocketServer({
+    server: httpServer,
+    path: '/graphql',
+});
+// Save the returned server's info so we can shutdown this server later
+const serverCleanup = (0, ws_2.useServer)({ schema }, wsServer);
+// Set up ApolloServer.
+const server = new server_1.ApolloServer({
+    schema,
+    plugins: [
+        // Proper shutdown for the HTTP server.
+        (0, drainHttpServer_1.ApolloServerPluginDrainHttpServer)({ httpServer }),
+        // Proper shutdown for the WebSocket server.
+        {
+            serverWillStart() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    return {
+                        drainServer() {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                yield serverCleanup.dispose();
+                            });
+                        },
+                    };
+                });
+            },
+        },
+    ],
+});
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 app.use('/media', express_1.default.static(path_1.default.join(__dirname, 'uploads')));
 server.start().then(() => {
-    app.use('/graphql', (0, cors_1.default)(), body_parser_1.default.json(), (0, express4_1.expressMiddleware)(server));
+    app.use('/graphql', (0, express4_1.expressMiddleware)(server));
 }).catch(err => console.error(err));
+// apis
 const storage = multer_1.default.diskStorage({
     destination: (req, file, callback) => {
         callback(null, path_1.default.join(__dirname, 'uploads'));
@@ -69,7 +100,7 @@ app.post("/upload", upload.array("files"), (req, res) => {
         const files = req.files;
         return res.status(200).json({ files: files.map(file => ({
                 fileName: file.originalname,
-                fileUrl: `https://birtracker.nat911.com/api/media/${file.filename}`,
+                fileUrl: `${process.env.BASE_URL}/media/${file.filename}`,
                 fileType: file.mimetype
             })) });
     }
@@ -107,14 +138,9 @@ app.post('/subscribe/:uid', (req, res) => __awaiter(void 0, void 0, void 0, func
         message: 'User Subscribed.'
     });
 }));
-// Create the HTTPS or HTTP server, per configuration
-let httpServer = http_1.default.createServer(app);
-const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
-    yield new Promise((resolve) => httpServer.listen({ port: port }, resolve));
-});
-startServer().then(() => {
-    console.log('Server ready on port', port);
-}).catch(err => {
-    console.log(err);
+const PORT = 8080;
+// Now that our HTTP server is fully set up, we can listen to it.
+httpServer.listen(PORT, () => {
+    console.log(`Server is now running on http://localhost:${PORT}/graphql`);
 });
 //# sourceMappingURL=index.js.map

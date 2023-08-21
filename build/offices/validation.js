@@ -33,8 +33,8 @@ exports.AccountRegisterInput = new graphql_1.GraphQLInputObjectType({
         lastName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
-        position: {
-            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        roleId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         },
         officeId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
@@ -53,8 +53,8 @@ exports.AccountUpdateInput = new graphql_1.GraphQLInputObjectType({
         lastName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
-        position: {
-            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        roleId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         }
     })
 });
@@ -109,8 +109,8 @@ exports.AccountUpdateProfileInput = new graphql_1.GraphQLInputObjectType({
         lastName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
-        position: {
-            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        roleId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         },
         officeId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
@@ -132,6 +132,9 @@ exports.UserChangePasswordInput = new graphql_1.GraphQLInputObjectType({
         resetCode: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
+        roleId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
         password: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         }
@@ -147,6 +150,9 @@ exports.UserLoginInputInput = new graphql_1.GraphQLInputObjectType({
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
         officeId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        roleId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         },
         password: {

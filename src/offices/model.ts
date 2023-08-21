@@ -11,6 +11,7 @@ import {
 import { 
     BirOffices, 
     OfficeSections, 
+    Roles, 
     UserAccounts 
 } from "@prisma/client";
 
@@ -32,6 +33,9 @@ export const BirOfficeObject: GraphQLObjectType = new GraphQLObjectType<BirOffic
                 return await dbClient.officeSections.findMany({
                     where: {
                         officeId: parent.officeId
+                    },
+                    orderBy: {
+                        sectionName: 'asc'
                     }
                 })
             }
@@ -77,6 +81,21 @@ export const OfficeSectionObject: GraphQLObjectType = new GraphQLObjectType<Offi
     })
 })
 
+export const RoleObject: GraphQLObjectType = new GraphQLObjectType<Roles>({
+    name: "UserRoles",
+    description: "BIR User Roles",
+    fields: () => ({
+        roleId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        roleName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        superuser: {
+            type: new GraphQLNonNull(GraphQLBoolean)
+        }
+    })
+})
 
 export const UserAccountObject: GraphQLObjectType = new GraphQLObjectType<UserAccounts>({
     name: "UserAccount",
@@ -91,8 +110,15 @@ export const UserAccountObject: GraphQLObjectType = new GraphQLObjectType<UserAc
         lastName: {
             type: new GraphQLNonNull(GraphQLString)
         },
-        position: {
-            type: new GraphQLNonNull(GraphQLString)
+        role: {
+            type: new GraphQLNonNull(RoleObject),
+            resolve: async (parent) => {
+                return await dbClient.roles.findUnique({
+                    where: {
+                        roleId: parent.roleId
+                    }
+                })
+            }
         },
         resetCode: {
             type: GraphQLString

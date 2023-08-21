@@ -364,6 +364,23 @@ const resolveSetMessageAsRead = (_, args) => __awaiter(void 0, void 0, void 0, f
 });
 exports.resolveSetMessageAsRead = resolveSetMessageAsRead;
 const resolveStatusAnalytics = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    // return all when superuser 
+    if (args.superuser) {
+        const analytics = yield database_1.default.thread.groupBy({
+            by: ['docTypeId'],
+            where: {
+                completed: args.completed
+            },
+            _count: {
+                refId: true
+            }
+        });
+        return analytics.map(data => ({
+            statusId: null,
+            docTypeId: data.docTypeId,
+            count: data._count.refId
+        }));
+    }
     // fetch section
     const section = yield database_1.default.officeSections.findUnique({
         where: {
@@ -423,6 +440,25 @@ const resolveStatusAnalytics = (_, args) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.resolveStatusAnalytics = resolveStatusAnalytics;
 const resolveThreadTypeAnalytics = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    if (args.superuser) {
+        const analytics = yield database_1.default.thread.groupBy({
+            by: ['statusId', 'docTypeId'],
+            where: {
+                dateCreated: {
+                    gte: new Date(args.startDate).toISOString(),
+                    lte: new Date(args.endDate).toISOString()
+                }
+            },
+            _count: {
+                refId: true
+            }
+        });
+        return analytics.map(data => ({
+            statusId: data.statusId,
+            docTypeId: data.docTypeId,
+            count: data._count.refId
+        }));
+    }
     // fetch section
     const section = yield database_1.default.officeSections.findUnique({
         where: {

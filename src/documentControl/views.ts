@@ -77,7 +77,7 @@ export const mutationFields = {
         resolve: resolveDeleteThreadType
     },
 
-    // ===================== Fields for Thread and Messages ======================== //
+    // ====================== Fields for Thread and Messages ======================== //
     createThread: {
         type: ThreadObject,
         args: {
@@ -179,7 +179,7 @@ export const queryFields = {
         resolve: resolveGetNotifications
     },
 
-    // ================== Analytics ======================== //
+    // ============================== Analytics =================================== //
     getStatusAnalytics: {
         type: new GraphQLList(AnalyticsObject),
         args: {
@@ -188,6 +188,9 @@ export const queryFields = {
             },
             completed: {
                 type: new GraphQLNonNull(GraphQLBoolean),
+            },
+            superuser: {
+                type: GraphQLBoolean
             }
         },
         resolve: resolveStatusAnalytics
@@ -197,6 +200,9 @@ export const queryFields = {
         args: {
             officeId: {
                 type: new GraphQLNonNull(GraphQLInt)
+            },
+            superuser: {
+                type: GraphQLBoolean
             },
             startDate: {
                 type: new GraphQLNonNull(GraphQLString)

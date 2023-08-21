@@ -365,7 +365,27 @@ export const resolveSetMessageAsRead = async (_: any, args: { threadId: string, 
     return null;
 }
 
-export const resolveStatusAnalytics = async (_: any, args: { officeId: number, completed: boolean }) => {
+export const resolveStatusAnalytics = async (_: any, args: { officeId: number, completed: boolean, superuser: boolean | null }) => {
+    
+    // return all when superuser 
+    if (args.superuser) {
+        const analytics = await dbClient.thread.groupBy({
+            by: ['docTypeId'],
+            where: {
+                completed: args.completed
+            },
+            _count: {
+                refId: true
+            }
+        })
+
+        return analytics.map(data => ({
+            statusId: null,
+            docTypeId: data.docTypeId,
+            count: data._count.refId
+        }))
+    }
+
     // fetch section
     const section = await dbClient.officeSections.findUnique({
         where: {
@@ -427,7 +447,29 @@ export const resolveStatusAnalytics = async (_: any, args: { officeId: number, c
     }))
 }
 
-export const resolveThreadTypeAnalytics = async (_: any, args: { officeId: number, startDate: string, endDate: string }) => {
+export const resolveThreadTypeAnalytics = async (_: any, args: { officeId: number, startDate: string, endDate: string, superuser: boolean | null }) => {
+    
+    if (args.superuser) {
+        const analytics = await dbClient.thread.groupBy({
+            by: ['statusId', 'docTypeId'],
+            where: {
+                dateCreated: {
+                    gte: new Date(args.startDate).toISOString(),
+                    lte: new Date(args.endDate).toISOString()
+                }
+            },
+            _count: {
+                refId: true
+            }
+        })
+
+        return analytics.map(data => ({
+            statusId: data.statusId,
+            docTypeId: data.docTypeId,
+            count: data._count.refId
+        }))
+    }
+
     // fetch section
     const section = await dbClient.officeSections.findUnique({
         where: {

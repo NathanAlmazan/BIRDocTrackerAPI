@@ -6,11 +6,13 @@ import {
 } from "graphql";
 import { 
     resolveAddOffice, 
+    resolveAddRole, 
     resolveChangePassword, 
     resolveDeleteOffice, 
     resolveGetAccountByUid, 
     resolveGetAllOfficeSections, 
     resolveGetAllOffices, 
+    resolveGetAllRoles, 
     resolveGetOfficeById,
     resolveRegisterAccount,
     resolveSetAccountInactive,
@@ -20,6 +22,7 @@ import {
 import { 
     BirOfficeObject, 
     OfficeSectionObject, 
+    RoleObject, 
     UserAccountObject 
 } from "./model";
 import { 
@@ -97,6 +100,16 @@ export const mutationFields = {
             }
         },
         resolve: resolveUserLogin
+    },
+
+    addRole: {
+        type: RoleObject,
+        args: {
+            name: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveAddRole
     }
 }
 
@@ -129,5 +142,11 @@ export const queryFields = {
             }
         },
         resolve: resolveGetAccountByUid
-    }
+    },
+
+     // =============================== User Role Queries ======================================= //
+     getAllRoles: {
+        type: new GraphQLList(RoleObject),
+        resolve: resolveGetAllRoles
+     }
 }

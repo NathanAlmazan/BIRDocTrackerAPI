@@ -55,6 +55,24 @@ export const resolveDeleteOffice = async (_: any, args: { id: number }) => {
     })
 }
 
+// ============================================================== User Roles ======================================================================= //
+
+export const resolveAddRole = async (_: any, args: { name: string }) => {
+    return await dbClient.roles.create({
+        data: {
+            roleName: args.name
+        }
+    })
+} 
+
+export const resolveGetAllRoles = async () => {
+    return await dbClient.roles.findMany({
+        orderBy: {
+            roleId: 'asc'
+        }
+    })
+}
+
 // ============================================================== User Account Controller ===================================================================== //
 
 export const resolveRegisterAccount = async (_: any, args: AccountRegisterInput) => {
@@ -63,7 +81,7 @@ export const resolveRegisterAccount = async (_: any, args: AccountRegisterInput)
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             password: "",
-            position: args.data.position,
+            roleId: args.data.roleId,
             officeId: args.data.officeId,
             resetCode: (Math.random() + 1).toString(36).substring(2, 8)
         }
@@ -78,7 +96,7 @@ export const resolveUpdateAccount = async (_: any, args: AccountUpdateInput) => 
         data: {
             firstName: args.data.firstName,
             lastName: args.data.lastName,
-            position: args.data.position,
+            roleId: args.data.roleId,
             resetCode: (Math.random() + 1).toString(36).substring(2, 8)
         }
     })
@@ -111,6 +129,7 @@ export const resolveChangePassword = async (_: any, args: { data: UserChangePass
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             officeId: args.data.officeId,
+            roleId: args.data.roleId,
             resetCode: args.data.resetCode
         }
     })
@@ -139,7 +158,8 @@ export const resolveUserLogin = async (_: any, args: { data: Omit<UserChangePass
         where: {
             firstName: args.data.firstName,
             lastName: args.data.lastName,
-            officeId: args.data.officeId
+            officeId: args.data.officeId,
+            roleId: args.data.roleId
         }
     })
 

@@ -44,7 +44,7 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveDeleteThreadType
     },
-    // ===================== Fields for Thread and Messages ======================== //
+    // ====================== Fields for Thread and Messages ======================== //
     createThread: {
         type: model_1.ThreadObject,
         args: {
@@ -142,7 +142,7 @@ exports.queryFields = {
         },
         resolve: controller_1.resolveGetNotifications
     },
-    // ================== Analytics ======================== //
+    // ============================== Analytics =================================== //
     getStatusAnalytics: {
         type: new graphql_1.GraphQLList(model_1.AnalyticsObject),
         args: {
@@ -151,6 +151,9 @@ exports.queryFields = {
             },
             completed: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean),
+            },
+            superuser: {
+                type: graphql_1.GraphQLBoolean
             }
         },
         resolve: controller_1.resolveStatusAnalytics
@@ -160,6 +163,9 @@ exports.queryFields = {
         args: {
             officeId: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            },
+            superuser: {
+                type: graphql_1.GraphQLBoolean
             },
             startDate: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)

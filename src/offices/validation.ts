@@ -54,8 +54,8 @@ export const AccountRegisterInput: GraphQLInputObjectType = new GraphQLInputObje
         lastName: {
             type: new GraphQLNonNull(GraphQLString)
         },
-        position: {
-            type: new GraphQLNonNull(GraphQLString)
+        roleId: {
+            type: new GraphQLNonNull(GraphQLInt)
         },
         officeId: {
             type: new GraphQLNonNull(GraphQLInt)
@@ -64,7 +64,7 @@ export const AccountRegisterInput: GraphQLInputObjectType = new GraphQLInputObje
 })
 
 export interface AccountUpdateInput {
-    data: Pick<UserAccounts, "accountId" | "firstName" | "lastName" | "position">
+    data: Pick<UserAccounts, "accountId" | "firstName" | "lastName" | "roleId">
 }
 
 export const AccountUpdateInput: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -79,8 +79,8 @@ export const AccountUpdateInput: GraphQLInputObjectType = new GraphQLInputObject
         lastName: {
             type: new GraphQLNonNull(GraphQLString)
         },
-        position: {
-            type: new GraphQLNonNull(GraphQLString)
+        roleId: {
+            type: new GraphQLNonNull(GraphQLInt)
         }
     })
 })
@@ -143,8 +143,8 @@ export const AccountUpdateProfileInput: GraphQLInputObjectType = new GraphQLInpu
         lastName: {
             type: new GraphQLNonNull(GraphQLString)
         },
-        position: {
-            type: new GraphQLNonNull(GraphQLString)
+        roleId: {
+            type: new GraphQLNonNull(GraphQLInt)
         },
         officeId: {
             type: new GraphQLNonNull(GraphQLInt)
@@ -158,6 +158,7 @@ export interface UserChangePassword {
     lastName: string;
     officeId: number;
     resetCode: string;
+    roleId: number;
     password: string;
 }
 
@@ -176,6 +177,9 @@ export const UserChangePasswordInput: GraphQLInputObjectType = new GraphQLInputO
         resetCode: {
             type: new GraphQLNonNull(GraphQLString)
         },
+        roleId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
         password: {
             type: new GraphQLNonNull(GraphQLString)
         }
@@ -192,6 +196,9 @@ export const UserLoginInputInput: GraphQLInputObjectType = new GraphQLInputObjec
             type: new GraphQLNonNull(GraphQLString)
         },
         officeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        roleId: {
             type: new GraphQLNonNull(GraphQLInt)
         },
         password: {

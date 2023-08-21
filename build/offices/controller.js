@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveAddOffice = void 0;
+exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveGetAllRoles = exports.resolveAddRole = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveAddOffice = void 0;
 const graphql_1 = require("graphql");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const database_1 = __importDefault(require("../database"));
@@ -59,6 +59,23 @@ const resolveDeleteOffice = (_, args) => __awaiter(void 0, void 0, void 0, funct
     });
 });
 exports.resolveDeleteOffice = resolveDeleteOffice;
+// ============================================================== User Roles ======================================================================= //
+const resolveAddRole = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.roles.create({
+        data: {
+            roleName: args.name
+        }
+    });
+});
+exports.resolveAddRole = resolveAddRole;
+const resolveGetAllRoles = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.roles.findMany({
+        orderBy: {
+            roleId: 'asc'
+        }
+    });
+});
+exports.resolveGetAllRoles = resolveGetAllRoles;
 // ============================================================== User Account Controller ===================================================================== //
 const resolveRegisterAccount = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     return yield database_1.default.userAccounts.create({
@@ -66,7 +83,7 @@ const resolveRegisterAccount = (_, args) => __awaiter(void 0, void 0, void 0, fu
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             password: "",
-            position: args.data.position,
+            roleId: args.data.roleId,
             officeId: args.data.officeId,
             resetCode: (Math.random() + 1).toString(36).substring(2, 8)
         }
@@ -81,7 +98,7 @@ const resolveUpdateAccount = (_, args) => __awaiter(void 0, void 0, void 0, func
         data: {
             firstName: args.data.firstName,
             lastName: args.data.lastName,
-            position: args.data.position,
+            roleId: args.data.roleId,
             resetCode: (Math.random() + 1).toString(36).substring(2, 8)
         }
     });
@@ -113,6 +130,7 @@ const resolveChangePassword = (_, args) => __awaiter(void 0, void 0, void 0, fun
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             officeId: args.data.officeId,
+            roleId: args.data.roleId,
             resetCode: args.data.resetCode
         }
     });
@@ -139,7 +157,8 @@ const resolveUserLogin = (_, args) => __awaiter(void 0, void 0, void 0, function
         where: {
             firstName: args.data.firstName,
             lastName: args.data.lastName,
-            officeId: args.data.officeId
+            officeId: args.data.officeId,
+            roleId: args.data.roleId
         }
     });
     if (!account)
