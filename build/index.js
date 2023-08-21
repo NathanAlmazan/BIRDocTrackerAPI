@@ -25,11 +25,13 @@ const ws_1 = require("ws");
 const ws_2 = require("graphql-ws/lib/use/ws");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const graphql_1 = require("graphql");
 // project imports
 const offices_1 = require("./offices");
 const documentControl_1 = require("./documentControl");
 const database_1 = __importDefault(require("./database"));
+dotenv_1.default.config();
 // Create the schema, which will be used separately by ApolloServer and
 // the WebSocket server.
 const RootMutation = new graphql_1.GraphQLObjectType({
