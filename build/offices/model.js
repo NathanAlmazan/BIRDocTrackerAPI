@@ -34,7 +34,7 @@ exports.BirOfficeObject = new graphql_1.GraphQLObjectType({
                         officeId: parent.officeId
                     },
                     orderBy: {
-                        sectionName: 'asc'
+                        sectionId: 'asc'
                     }
                 });
             })

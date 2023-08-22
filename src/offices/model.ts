@@ -35,7 +35,7 @@ export const BirOfficeObject: GraphQLObjectType = new GraphQLObjectType<BirOffic
                         officeId: parent.officeId
                     },
                     orderBy: {
-                        sectionName: 'asc'
+                        sectionId: 'asc'
                     }
                 })
             }
