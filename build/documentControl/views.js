@@ -133,6 +133,10 @@ exports.queryFields = {
         },
         resolve: controller_1.resolveGetCreatedThread
     },
+    getAllThread: {
+        type: new graphql_1.GraphQLList(model_1.ThreadObject),
+        resolve: controller_1.resolveGetAllInbox
+    },
     getUserNotifications: {
         type: new graphql_1.GraphQLList(model_1.MessagesObject),
         args: {

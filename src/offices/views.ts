@@ -8,7 +8,9 @@ import {
     resolveAddOffice, 
     resolveAddRole, 
     resolveChangePassword, 
+    resolveCreateOfficeSection, 
     resolveDeleteOffice, 
+    resolveDeleteOfficeSection, 
     resolveGetAccountByUid, 
     resolveGetAllOfficeSections, 
     resolveGetAllOffices, 
@@ -17,6 +19,8 @@ import {
     resolveRegisterAccount,
     resolveSetAccountInactive,
     resolveUpdateAccount,
+    resolveUpdateOffice,
+    resolveUpdateOfficeSection,
     resolveUserLogin
 } from "./controller";
 import { 
@@ -45,6 +49,18 @@ export const mutationFields = {
         },
         resolve: resolveAddOffice
     },
+    updateBirOffice: {
+        type: BirOfficeObject,
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            officeName: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveUpdateOffice
+    },
     deleteBirOffice: {
         type: BirOfficeObject,
         args: {
@@ -53,6 +69,39 @@ export const mutationFields = {
             }
         },
         resolve: resolveDeleteOffice
+    },
+    addOfficeSection: {
+        type: OfficeSectionObject,
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            sectionName: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveCreateOfficeSection
+    },
+    updateSection: {
+        type: OfficeSectionObject,
+        args: {
+            sectionId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            sectionName: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveUpdateOfficeSection
+    },
+    deleteOfficeSection: {
+        type: OfficeSectionObject,
+        args: {
+            sectionId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            }
+        },
+        resolve: resolveDeleteOfficeSection
     },
 
     // =============================== User Account Mutations ======================================= //

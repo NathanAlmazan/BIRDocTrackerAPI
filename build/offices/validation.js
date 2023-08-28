@@ -55,6 +55,9 @@ exports.AccountUpdateInput = new graphql_1.GraphQLInputObjectType({
         },
         roleId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        password: {
+            type: graphql_1.GraphQLString
         }
     })
 });

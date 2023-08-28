@@ -16,6 +16,18 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveAddOffice
     },
+    updateBirOffice: {
+        type: model_1.BirOfficeObject,
+        args: {
+            officeId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            },
+            officeName: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveUpdateOffice
+    },
     deleteBirOffice: {
         type: model_1.BirOfficeObject,
         args: {
@@ -24,6 +36,39 @@ exports.mutationFields = {
             }
         },
         resolve: controller_1.resolveDeleteOffice
+    },
+    addOfficeSection: {
+        type: model_1.OfficeSectionObject,
+        args: {
+            officeId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            },
+            sectionName: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveCreateOfficeSection
+    },
+    updateSection: {
+        type: model_1.OfficeSectionObject,
+        args: {
+            sectionId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            },
+            sectionName: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveUpdateOfficeSection
+    },
+    deleteOfficeSection: {
+        type: model_1.OfficeSectionObject,
+        args: {
+            sectionId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            }
+        },
+        resolve: controller_1.resolveDeleteOfficeSection
     },
     // =============================== User Account Mutations ======================================= //
     registerAccount: {

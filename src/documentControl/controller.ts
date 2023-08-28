@@ -219,7 +219,7 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string }) 
             authorId: args.userId
         },
         orderBy: {
-            dateDue: 'asc'
+            dateDue: 'desc'
         }  
     })
 }
@@ -278,7 +278,7 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, comp
             completed: args.completed ? true : false
         },
         orderBy: {
-            dateDue: 'asc'
+            dateDue: 'desc'
         }
     })
 }
@@ -347,6 +347,17 @@ export const resolveGetNotifications = async (_: any, args: { userId: string }) 
         },
         orderBy: {
             dateSent: 'desc'
+        }
+    })
+}
+
+export const resolveGetAllInbox = async () => {
+    return await dbClient.thread.findMany({
+        where: {
+            completed: false
+        },
+        orderBy: {
+            dateDue: 'desc'
         }
     })
 }

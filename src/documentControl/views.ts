@@ -19,6 +19,7 @@ import {
     resolveCreateThread, 
     resolveDeleteThreadStatus, 
     resolveDeleteThreadType, 
+    resolveGetAllInbox, 
     resolveGetAllThreadStatus, 
     resolveGetAllThreadTypes, 
     resolveGetCreatedThread, 
@@ -168,6 +169,10 @@ export const queryFields = {
             }
         },
         resolve: resolveGetCreatedThread
+    },
+    getAllThread: {
+        type: new GraphQLList(ThreadObject),
+        resolve: resolveGetAllInbox
     },
     getUserNotifications: {
         type: new GraphQLList(MessagesObject),

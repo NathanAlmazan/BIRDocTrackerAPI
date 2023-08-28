@@ -73,7 +73,7 @@ model Thread {
   dateCreated     DateTime        @db.Timestamp(3) @default(now())
   dateUpdated     DateTime        @db.Timestamp(3) @updatedAt
   dateDue         DateTime
-  author          UserAccounts    @relation(fields: [authorId], references: [accountId])
+  author          UserAccounts    @relation(fields: [authorId], references: [accountId], onDelete: Cascade)
   status          DocumentStatus  @relation(fields: [statusId], references: [statusId])
   recipient       OfficeSections  @relation(fields: [recipientId], references: [sectionId])
   docType         DocumentTypes   @relation(fields: [docTypeId], references: [docId])
@@ -87,7 +87,7 @@ model Messages {
   message         String      
   read            Boolean         @default(false)
   dateSent        DateTime        @db.Timestamp(3) @default(now())
-  sender          UserAccounts    @relation(fields: [senderId], references: [accountId])
+  sender          UserAccounts    @relation(fields: [senderId], references: [accountId], onDelete: Cascade)
   thread          Thread          @relation(fields: [refId], references: [refId])
   files           MessageFiles[]
 }

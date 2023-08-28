@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveGetAllRoles = exports.resolveAddRole = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveAddOffice = void 0;
+exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveGetAllRoles = exports.resolveAddRole = exports.resolveDeleteOfficeSection = exports.resolveUpdateOfficeSection = exports.resolveCreateOfficeSection = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveUpdateOffice = exports.resolveAddOffice = void 0;
 const graphql_1 = require("graphql");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const database_1 = __importDefault(require("../database"));
@@ -35,6 +35,17 @@ const resolveAddOffice = (_, args) => __awaiter(void 0, void 0, void 0, function
     });
 });
 exports.resolveAddOffice = resolveAddOffice;
+const resolveUpdateOffice = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.birOffices.update({
+        where: {
+            officeId: args.officeId
+        },
+        data: {
+            officeName: args.officeName
+        }
+    });
+});
+exports.resolveUpdateOffice = resolveUpdateOffice;
 const resolveGetAllOffices = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield database_1.default.birOffices.findMany();
 });
@@ -52,6 +63,12 @@ const resolveGetAllOfficeSections = () => __awaiter(void 0, void 0, void 0, func
 });
 exports.resolveGetAllOfficeSections = resolveGetAllOfficeSections;
 const resolveDeleteOffice = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    yield database_1.default.officeSections.deleteMany({
+        where: {
+            officeId: args.id,
+            sectionName: 'default'
+        }
+    });
     return yield database_1.default.birOffices.delete({
         where: {
             officeId: args.id
@@ -59,6 +76,40 @@ const resolveDeleteOffice = (_, args) => __awaiter(void 0, void 0, void 0, funct
     });
 });
 exports.resolveDeleteOffice = resolveDeleteOffice;
+const resolveCreateOfficeSection = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.officeSections.create({
+        data: {
+            sectionName: args.sectionName,
+            officeId: args.officeId
+        }
+    });
+});
+exports.resolveCreateOfficeSection = resolveCreateOfficeSection;
+const resolveUpdateOfficeSection = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.officeSections.update({
+        where: {
+            sectionId: args.sectionId,
+        },
+        data: {
+            sectionName: args.sectionName
+        }
+    });
+});
+exports.resolveUpdateOfficeSection = resolveUpdateOfficeSection;
+const resolveDeleteOfficeSection = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    yield database_1.default.userAccounts.deleteMany({
+        where: {
+            officeId: args.sectionId,
+            active: false
+        }
+    });
+    return yield database_1.default.officeSections.delete({
+        where: {
+            sectionId: args.sectionId
+        }
+    });
+});
+exports.resolveDeleteOfficeSection = resolveDeleteOfficeSection;
 // ============================================================== User Roles ======================================================================= //
 const resolveAddRole = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     return yield database_1.default.roles.create({
@@ -91,6 +142,10 @@ const resolveRegisterAccount = (_, args) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.resolveRegisterAccount = resolveRegisterAccount;
 const resolveUpdateAccount = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    let password;
+    if (args.data.password && args.data.password.length > 6) {
+        password = yield bcrypt_1.default.hash(args.data.password, 12);
+    }
     return yield database_1.default.userAccounts.update({
         where: {
             accountId: args.data.accountId,
@@ -99,7 +154,8 @@ const resolveUpdateAccount = (_, args) => __awaiter(void 0, void 0, void 0, func
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             roleId: args.data.roleId,
-            resetCode: (Math.random() + 1).toString(36).substring(2, 8)
+            resetCode: (Math.random() + 1).toString(36).substring(2, 8),
+            password: password
         }
     });
 });

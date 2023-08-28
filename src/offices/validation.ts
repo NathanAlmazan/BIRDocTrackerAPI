@@ -64,7 +64,7 @@ export const AccountRegisterInput: GraphQLInputObjectType = new GraphQLInputObje
 })
 
 export interface AccountUpdateInput {
-    data: Pick<UserAccounts, "accountId" | "firstName" | "lastName" | "roleId">
+    data: Pick<UserAccounts, "accountId" | "firstName" | "lastName" | "roleId" | "password">
 }
 
 export const AccountUpdateInput: GraphQLInputObjectType = new GraphQLInputObjectType({
@@ -81,6 +81,9 @@ export const AccountUpdateInput: GraphQLInputObjectType = new GraphQLInputObject
         },
         roleId: {
             type: new GraphQLNonNull(GraphQLInt)
+        },
+        password: {
+            type: GraphQLString
         }
     })
 })

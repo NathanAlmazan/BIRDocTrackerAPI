@@ -29,6 +29,16 @@ export const resolveAddOffice = async (_: any, args: BirOfficeInput) => {
     })
 }
 
+export const resolveUpdateOffice = async (_: any, args: { officeId: number, officeName: string }) => {
+    return await dbClient.birOffices.update({
+        where: {
+            officeId: args.officeId
+        },
+        data: {
+            officeName: args.officeName
+        }
+    })
+}
 
 export const resolveGetAllOffices = async () => {
     return await dbClient.birOffices.findMany()
@@ -48,9 +58,51 @@ export const resolveGetAllOfficeSections = async () => {
 }
 
 export const resolveDeleteOffice = async (_: any, args: { id: number }) => {
+    await dbClient.officeSections.deleteMany({
+        where: {
+            officeId: args.id,
+            sectionName: 'default'
+        }
+    });
+
     return await dbClient.birOffices.delete({
         where: {
             officeId: args.id
+        }
+    })
+}
+
+export const resolveCreateOfficeSection = async (_: any, args: { officeId: number, sectionName: string }) => {
+    return await dbClient.officeSections.create({
+        data: {
+            sectionName: args.sectionName,
+            officeId: args.officeId
+        }
+    })
+}
+
+export const resolveUpdateOfficeSection = async (_: any, args: { sectionId: number, sectionName: string }) => {
+    return await dbClient.officeSections.update({
+        where: {
+            sectionId: args.sectionId,
+        },
+        data: {
+            sectionName: args.sectionName
+        }
+    })
+}
+
+export const resolveDeleteOfficeSection = async (_: any, args: { sectionId: number }) => {
+    await dbClient.userAccounts.deleteMany({
+        where: {
+            officeId: args.sectionId,
+            active: false
+        }
+    });
+
+    return await dbClient.officeSections.delete({
+        where: {
+            sectionId: args.sectionId
         }
     })
 }
@@ -89,6 +141,12 @@ export const resolveRegisterAccount = async (_: any, args: AccountRegisterInput)
 }
 
 export const resolveUpdateAccount = async (_: any, args: AccountUpdateInput) => {
+    let password: string | undefined;
+    
+    if (args.data.password && args.data.password.length > 6) {
+        password = await bcrypt.hash(args.data.password, 12);
+    }
+
     return await dbClient.userAccounts.update({
         where: {
             accountId: args.data.accountId,
@@ -97,7 +155,8 @@ export const resolveUpdateAccount = async (_: any, args: AccountUpdateInput) => 
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             roleId: args.data.roleId,
-            resetCode: (Math.random() + 1).toString(36).substring(2, 8)
+            resetCode: (Math.random() + 1).toString(36).substring(2, 8),
+            password: password
         }
     })
 }

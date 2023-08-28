@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -222,7 +222,7 @@ const resolveGetCreatedThread = (_, args) => __awaiter(void 0, void 0, void 0, f
             authorId: args.userId
         },
         orderBy: {
-            dateDue: 'asc'
+            dateDue: 'desc'
         }
     });
 });
@@ -279,7 +279,7 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
             completed: args.completed ? true : false
         },
         orderBy: {
-            dateDue: 'asc'
+            dateDue: 'desc'
         }
     });
 });
@@ -350,6 +350,17 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
     });
 });
 exports.resolveGetNotifications = resolveGetNotifications;
+const resolveGetAllInbox = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.thread.findMany({
+        where: {
+            completed: false
+        },
+        orderBy: {
+            dateDue: 'desc'
+        }
+    });
+});
+exports.resolveGetAllInbox = resolveGetAllInbox;
 const resolveSetMessageAsRead = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     yield database_1.default.messages.updateMany({
         where: {
