@@ -44,6 +44,19 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveDeleteThreadType
     },
+    // ======================== Fields for Thread Purposes ========================== //
+    addThreadPurpose: {
+        type: model_1.DocumentPurposeObject,
+        args: {
+            name: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            actionable: {
+                type: graphql_1.GraphQLBoolean
+            }
+        },
+        resolve: controller_1.resolveAddThreadPurpose
+    },
     // ====================== Fields for Thread and Messages ======================== //
     createThread: {
         type: model_1.ThreadObject,
@@ -101,6 +114,11 @@ exports.queryFields = {
     getAllThreadTypes: {
         type: new graphql_1.GraphQLList(model_1.DocumentTypeObject),
         resolve: controller_1.resolveGetAllThreadTypes
+    },
+    // ========================= Fields for Thread Types ============================ //
+    getAllThreadPurpose: {
+        type: new graphql_1.GraphQLList(model_1.DocumentPurposeObject),
+        resolve: controller_1.resolveGetAllThreadPurpose
     },
     // ===================== Fields for Thread and Messages ======================== //
     getThreadById: {

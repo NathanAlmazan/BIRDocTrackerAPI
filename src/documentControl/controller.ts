@@ -49,6 +49,24 @@ export const resolveDeleteThreadType = async (_: any, args: { id: number }) => {
     })
 }
 
+// ============================================= Thread Purpose Controller ================================================ //
+
+export const resolveAddThreadPurpose = async (_: any, args: { name: string, actionable?: boolean }) => {
+    return await dbClient.documentPurpose.create({
+        data: {
+            purposeName: args.name,
+            actionable: args.actionable
+        }
+    })
+}
+
+export const resolveGetAllThreadPurpose = async () => {
+    return await dbClient.documentPurpose.findMany({
+        orderBy: {
+            purposeName: 'asc'
+        }
+    })
+}
 
 // =========================================== Thread and Messages Controller ============================================= //
 

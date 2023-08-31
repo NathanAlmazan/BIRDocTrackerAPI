@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -58,6 +58,24 @@ const resolveDeleteThreadType = (_, args) => __awaiter(void 0, void 0, void 0, f
     });
 });
 exports.resolveDeleteThreadType = resolveDeleteThreadType;
+// ============================================= Thread Purpose Controller ================================================ //
+const resolveAddThreadPurpose = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.documentPurpose.create({
+        data: {
+            purposeName: args.name,
+            actionable: args.actionable
+        }
+    });
+});
+exports.resolveAddThreadPurpose = resolveAddThreadPurpose;
+const resolveGetAllThreadPurpose = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.documentPurpose.findMany({
+        orderBy: {
+            purposeName: 'asc'
+        }
+    });
+});
+exports.resolveGetAllThreadPurpose = resolveGetAllThreadPurpose;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     return yield database_1.default.thread.create({

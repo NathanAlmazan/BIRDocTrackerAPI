@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
+exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.DocumentPurposeObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const model_1 = require("../offices/model");
@@ -80,6 +80,31 @@ exports.DocumentTypeObject = new graphql_1.GraphQLObjectType({
                     _count: true
                 });
                 return threads._count;
+            })
+        }
+    })
+});
+exports.DocumentPurposeObject = new graphql_1.GraphQLObjectType({
+    name: "DocumentPurpose",
+    description: "Defines if thread is actionable or not",
+    fields: () => ({
+        purposeId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        purposeName: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        actionable: {
+            type: graphql_1.GraphQLBoolean
+        },
+        threads: {
+            type: new graphql_1.GraphQLList(exports.ThreadObject),
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield database_1.default.thread.findMany({
+                    where: {
+                        purposeId: parent.purposeId
+                    }
+                });
             })
         }
     })

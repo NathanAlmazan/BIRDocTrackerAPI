@@ -20,6 +20,9 @@ exports.ThreadCreateInput = new graphql_1.GraphQLInputObjectType({
         docTypeId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         },
+        purposeId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
         attachments: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
         },

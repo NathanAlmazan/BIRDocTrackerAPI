@@ -12,7 +12,7 @@ import {
 // =============================================== Thread and Messages Validation ================================================ //
 
 export interface ThreadCreateInput {
-    data: Pick<Thread, "subject" | "authorId" | "statusId" | "recipientId" | "docTypeId" | "attachments" | "completed" | "dateDue">
+    data: Pick<Thread, "subject" | "authorId" | "statusId" | "recipientId" | "docTypeId" | "attachments" | "completed" | "dateDue" | "purposeId">
 }
 
 export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObjectType({
@@ -31,6 +31,9 @@ export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObject
             type: new GraphQLNonNull(GraphQLInt)
         },
         docTypeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        purposeId: {
             type: new GraphQLNonNull(GraphQLInt)
         },
         attachments: {

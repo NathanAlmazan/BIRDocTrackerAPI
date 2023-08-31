@@ -1,4 +1,5 @@
 import { 
+    DocumentPurpose,
     DocumentStatus, 
     DocumentTypes, 
     MessageFiles, 
@@ -92,6 +93,32 @@ export const DocumentTypeObject: GraphQLObjectType = new GraphQLObjectType<Docum
     })
 })
 
+export const DocumentPurposeObject: GraphQLObjectType = new GraphQLObjectType<DocumentPurpose>({
+    name: "DocumentPurpose",
+    description: "Defines if thread is actionable or not",
+    fields: () => ({
+        purposeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        purposeName: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        actionable: {
+            type: GraphQLBoolean
+        },
+        threads: {
+            type: new GraphQLList(ThreadObject),
+            resolve: async (parent) => {
+                return await dbClient.thread.findMany({
+                    where: {
+                        purposeId: parent.purposeId
+                    }
+                })
+            }
+        }
+    })
+})
+
 export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
     name: "DocumentControl",
     description: "Document Control Logs",
@@ -165,6 +192,16 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
                 return await dbClient.documentTypes.findUnique({
                     where: {
                         docId: parent.docTypeId
+                    }
+                })
+            }
+        },
+        purpose: {
+            type: DocumentPurposeObject,
+            resolve: async (parent) => {
+                return await dbClient.documentPurpose.findUnique({
+                    where: {
+                        purposeId: parent.purposeId
                     }
                 })
             }

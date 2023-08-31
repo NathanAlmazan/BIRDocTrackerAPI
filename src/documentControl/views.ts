@@ -7,12 +7,14 @@ import {
 } from "graphql";
 import { 
     AnalyticsObject,
+    DocumentPurposeObject,
     DocumentStatusObject, 
     DocumentTypeObject, 
     MessagesObject, 
     ThreadObject
 } from "./model";
 import { 
+    resolveAddThreadPurpose,
     resolveAddThreadStatus, 
     resolveAddThreadType, 
     resolveCreateMessage, 
@@ -20,6 +22,7 @@ import {
     resolveDeleteThreadStatus, 
     resolveDeleteThreadType, 
     resolveGetAllInbox, 
+    resolveGetAllThreadPurpose, 
     resolveGetAllThreadStatus, 
     resolveGetAllThreadTypes, 
     resolveGetCreatedThread, 
@@ -77,6 +80,21 @@ export const mutationFields = {
         },
         resolve: resolveDeleteThreadType
     },
+
+    // ======================== Fields for Thread Purposes ========================== //
+    addThreadPurpose: {
+        type: DocumentPurposeObject,
+        args: {
+            name: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            actionable: {
+                type: GraphQLBoolean
+            }
+        },
+        resolve: resolveAddThreadPurpose
+    },
+
 
     // ====================== Fields for Thread and Messages ======================== //
     createThread: {
@@ -137,6 +155,11 @@ export const queryFields = {
     getAllThreadTypes: {
         type: new GraphQLList(DocumentTypeObject),
         resolve: resolveGetAllThreadTypes
+    },
+    // ========================= Fields for Thread Types ============================ //
+    getAllThreadPurpose: {
+        type: new GraphQLList(DocumentPurposeObject),
+        resolve: resolveGetAllThreadPurpose
     },
 
      // ===================== Fields for Thread and Messages ======================== //

@@ -37,6 +37,13 @@ model DocumentStatus {
   threads         Thread[]
 }
 
+model DocumentPurpose {
+  purposeId       Int         @id @default(autoincrement())
+  purposeName     String      @db.VarChar(50)
+  actionable      Boolean     @default(true)
+  threads         Thread[]
+}
+
 model Roles {
   roleId          Int         @id @default(autoincrement())
   roleName        String      @db.VarChar(100)
@@ -68,6 +75,7 @@ model Thread {
   statusId        Int
   recipientId     Int
   docTypeId       Int
+  purposeId       Int
   attachments     Boolean         @default(true)
   completed       Boolean         @default(false)
   dateCreated     DateTime        @db.Timestamp(3) @default(now())
@@ -77,6 +85,7 @@ model Thread {
   status          DocumentStatus  @relation(fields: [statusId], references: [statusId])
   recipient       OfficeSections  @relation(fields: [recipientId], references: [sectionId])
   docType         DocumentTypes   @relation(fields: [docTypeId], references: [docId])
+  purpose         DocumentPurpose @relation(fields: [purposeId], references: [purposeId])
   messages        Messages[]
 }
 
