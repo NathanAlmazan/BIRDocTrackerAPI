@@ -13,6 +13,7 @@ datasource db {
 model BirOffices {
   officeId        Int         @id @default(autoincrement())
   officeName      String      @db.VarChar(100)
+  refNum          String      @db.VarChar(10) @default("RR6")
   sections        OfficeSections[]
 }
 
@@ -69,6 +70,7 @@ model UserAccounts {
 
 model Thread {
   refId           String          @id @db.Uuid @default(uuid())    
+  refSlipNum      String          @db.VarChar(20)
   subject         String          @db.VarChar(255)
   revision        Int             @default(0)
   authorId        String          @db.Uuid

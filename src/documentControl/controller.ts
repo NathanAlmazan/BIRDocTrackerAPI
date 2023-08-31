@@ -71,8 +71,65 @@ export const resolveGetAllThreadPurpose = async () => {
 // =========================================== Thread and Messages Controller ============================================= //
 
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
+    const current = new Date();
+
+    const threadCount = await dbClient.thread.aggregate({
+        where: {
+            dateCreated: {
+                gte: new Date(current.getFullYear(), current.getMonth(), 1)
+            }
+        },
+        _count: {
+            refId: true
+        }
+    });
+
+    const purpose = await dbClient.documentPurpose.findUnique({
+        where: {
+            purposeId: args.data.purposeId
+        }
+    })
+
+    if (!purpose) throw new GraphQLError('Document purpose does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const recipient = await dbClient.officeSections.findUnique({
+        where: {
+            sectionId: args.data.recipientId
+        },
+        select: {
+            office: {
+                select: {
+                    refNum: true
+                }
+            }
+        }
+    })
+
+    if (!recipient) throw new GraphQLError('Recipient does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // get initial status based on purpose
+    let status = 2;
+    if (args.data.purposeId === 1) status = 5;
+    else if (args.data.purposeId === 10) status = 3;
+    else if (!purpose.actionable) status = 1;
+
+    console.log(args.data.purposeId);
+
     return await dbClient.thread.create({
-        data: args.data
+        data: {
+            ...args.data,
+            refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+            statusId: status,
+            completed: !purpose.actionable
+        }
     })
 }
 

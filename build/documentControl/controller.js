@@ -78,8 +78,57 @@ const resolveGetAllThreadPurpose = () => __awaiter(void 0, void 0, void 0, funct
 exports.resolveGetAllThreadPurpose = resolveGetAllThreadPurpose;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    const current = new Date();
+    const threadCount = yield database_1.default.thread.aggregate({
+        where: {
+            dateCreated: {
+                gte: new Date(current.getFullYear(), current.getMonth(), 1)
+            }
+        },
+        _count: {
+            refId: true
+        }
+    });
+    const purpose = yield database_1.default.documentPurpose.findUnique({
+        where: {
+            purposeId: args.data.purposeId
+        }
+    });
+    if (!purpose)
+        throw new graphql_1.GraphQLError('Document purpose does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    const recipient = yield database_1.default.officeSections.findUnique({
+        where: {
+            sectionId: args.data.recipientId
+        },
+        select: {
+            office: {
+                select: {
+                    refNum: true
+                }
+            }
+        }
+    });
+    if (!recipient)
+        throw new graphql_1.GraphQLError('Recipient does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    // get initial status based on purpose
+    let status = 2;
+    if (args.data.purposeId === 1)
+        status = 5;
+    else if (args.data.purposeId === 10)
+        status = 3;
+    else if (!purpose.actionable)
+        status = 1;
+    console.log(args.data.purposeId);
     return yield database_1.default.thread.create({
-        data: args.data
+        data: Object.assign(Object.assign({}, args.data), { refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`, statusId: status, completed: !purpose.actionable })
     });
 });
 exports.resolveCreateThread = resolveCreateThread;

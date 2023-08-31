@@ -126,6 +126,9 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
         refId: {
             type: new GraphQLNonNull(GraphQLString)
         },
+        refSlipNum: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
         subject: {
             type: new GraphQLNonNull(GraphQLString)
         },

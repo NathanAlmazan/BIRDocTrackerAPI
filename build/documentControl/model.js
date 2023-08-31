@@ -116,6 +116,9 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
         refId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
+        refSlipNum: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
         subject: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
