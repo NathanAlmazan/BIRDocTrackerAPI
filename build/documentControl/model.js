@@ -186,6 +186,16 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
                 });
             })
         },
+        purpose: {
+            type: exports.DocumentPurposeObject,
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield database_1.default.documentPurpose.findUnique({
+                    where: {
+                        purposeId: parent.purposeId
+                    }
+                });
+            })
+        },
         messages: {
             type: new graphql_1.GraphQLList(exports.MessagesObject),
             resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
