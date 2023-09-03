@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.DocumentPurposeObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
+exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.ThreadHistoryObject = exports.DocumentPurposeObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const model_1 = require("../offices/model");
@@ -109,6 +109,34 @@ exports.DocumentPurposeObject = new graphql_1.GraphQLObjectType({
         }
     })
 });
+exports.ThreadHistoryObject = new graphql_1.GraphQLObjectType({
+    name: "DocumentHistory",
+    fields: () => ({
+        historyId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+            resolve: (parent) => parent.historyId.toString()
+        },
+        historyLabel: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        dateCreated: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+            resolve: (parent) => new Date(parent.dateCreated).toISOString()
+        },
+        status: {
+            type: exports.DocumentStatusObject,
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                if (parent.statusId)
+                    return yield database_1.default.documentStatus.findUnique({
+                        where: {
+                            statusId: parent.statusId
+                        }
+                    });
+                return null;
+            })
+        }
+    })
+});
 exports.ThreadObject = new graphql_1.GraphQLObjectType({
     name: "DocumentControl",
     description: "Document Control Logs",
@@ -118,6 +146,9 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
         },
         refSlipNum: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        reqForm: {
+            type: graphql_1.GraphQLString
         },
         subject: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
@@ -208,6 +239,19 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
                     },
                     orderBy: {
                         dateSent: 'asc'
+                    }
+                });
+            })
+        },
+        history: {
+            type: new graphql_1.GraphQLList(exports.ThreadHistoryObject),
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                return yield database_1.default.threadHistory.findMany({
+                    where: {
+                        threadId: parent.refId
+                    },
+                    orderBy: {
+                        dateCreated: 'asc'
                     }
                 });
             })
@@ -302,11 +346,25 @@ exports.AnalyticsObject = new graphql_1.GraphQLObjectType({
         docType: {
             type: exports.DocumentTypeObject,
             resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
-                return yield database_1.default.documentTypes.findUnique({
-                    where: {
-                        docId: parent.docTypeId
-                    }
-                });
+                if (parent.docTypeId)
+                    return yield database_1.default.documentTypes.findUnique({
+                        where: {
+                            docId: parent.docTypeId
+                        }
+                    });
+                return null;
+            })
+        },
+        purpose: {
+            type: exports.DocumentPurposeObject,
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                if (parent.purposeId)
+                    return yield database_1.default.documentPurpose.findUnique({
+                        where: {
+                            purposeId: parent.purposeId
+                        }
+                    });
+                return null;
             })
         },
         count: {

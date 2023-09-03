@@ -31,6 +31,7 @@ import {
     resolveGetThreadById, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
+    resolveThreadPurposeAnalytics, 
     resolveThreadTypeAnalytics, 
     resolveUpdateThreadStatus 
 } from "./controller";
@@ -178,8 +179,8 @@ export const queryFields = {
             userId: {
                 type: new GraphQLNonNull(GraphQLString)
             },
-            completed: {
-                type: GraphQLBoolean
+            type: {
+                type: new GraphQLNonNull(GraphQLString)
             }
         },
         resolve: resolveGetInboxThread
@@ -189,18 +190,29 @@ export const queryFields = {
         args: {
             userId: {
                 type: new GraphQLNonNull(GraphQLString)
+            },
+            type: {
+                type: new GraphQLNonNull(GraphQLString)
             }
         },
         resolve: resolveGetCreatedThread
     },
     getAllThread: {
         type: new GraphQLList(ThreadObject),
+        args: {
+            memos: {
+                type: GraphQLBoolean
+            }
+        },
         resolve: resolveGetAllInbox
     },
     getUserNotifications: {
-        type: new GraphQLList(MessagesObject),
+        type: new GraphQLList(ThreadObject),
         args: {
             userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            type: {
                 type: new GraphQLNonNull(GraphQLString)
             }
         },
@@ -240,5 +252,23 @@ export const queryFields = {
             }
         },
         resolve: resolveThreadTypeAnalytics
+    },
+    getThreadPurposeAnalytics: {
+        type: new GraphQLList(AnalyticsObject),
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            },
+            superuser: {
+                type: GraphQLBoolean
+            },
+            startDate: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            endDate: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveThreadPurposeAnalytics
     }
 }

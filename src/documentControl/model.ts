@@ -4,7 +4,8 @@ import {
     DocumentTypes, 
     MessageFiles, 
     Messages, 
-    Thread 
+    Thread, 
+    ThreadHistory
 } from "@prisma/client"
 import { 
     GraphQLBoolean, 
@@ -119,6 +120,35 @@ export const DocumentPurposeObject: GraphQLObjectType = new GraphQLObjectType<Do
     })
 })
 
+export const ThreadHistoryObject: GraphQLObjectType = new GraphQLObjectType<ThreadHistory>({
+    name: "DocumentHistory",
+    fields: () => ({
+        historyId: {
+            type: new GraphQLNonNull(GraphQLString),
+            resolve: (parent) => parent.historyId.toString()
+        },
+        historyLabel: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        dateCreated: {
+            type: new GraphQLNonNull(GraphQLString),
+            resolve: (parent) => new Date(parent.dateCreated).toISOString()
+        },
+        status: {
+            type: DocumentStatusObject,
+            resolve: async (parent) => {
+                if (parent.statusId) return await dbClient.documentStatus.findUnique({
+                    where: {
+                        statusId: parent.statusId
+                    }
+                })
+
+                return null;
+            }
+        }
+    })
+})
+
 export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
     name: "DocumentControl",
     description: "Document Control Logs",
@@ -128,6 +158,9 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
         },
         refSlipNum: {
             type: new GraphQLNonNull(GraphQLString)
+        },
+        reqForm: {
+            type: GraphQLString
         },
         subject: {
             type: new GraphQLNonNull(GraphQLString)
@@ -218,6 +251,19 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
                     },
                     orderBy: {
                         dateSent: 'asc'
+                    }
+                })
+            }
+        },
+        history: {
+            type: new GraphQLList(ThreadHistoryObject),
+            resolve: async (parent) => {
+                return await dbClient.threadHistory.findMany({
+                    where: {
+                        threadId: parent.refId
+                    },
+                    orderBy: {
+                        dateCreated: 'asc'
                     }
                 })
             }
@@ -317,11 +363,25 @@ export const AnalyticsObject: GraphQLObjectType = new GraphQLObjectType<Thread>(
         docType: {
             type: DocumentTypeObject,
             resolve: async (parent) => {
-                return await dbClient.documentTypes.findUnique({
+                if (parent.docTypeId) return await dbClient.documentTypes.findUnique({
                     where: {
                         docId: parent.docTypeId
                     }
                 })
+                
+                return null;
+            }
+        },
+        purpose: {
+            type: DocumentPurposeObject,
+            resolve: async (parent) => {
+                if (parent.purposeId) return await dbClient.documentPurpose.findUnique({
+                    where: {
+                        purposeId: parent.purposeId
+                    }
+                })
+
+                return null;
             }
         },
         count: {

@@ -108,6 +108,25 @@ app.post("/upload", upload.array("files"), (req, res) => {
     }
     return res.status(400).json({ message: "Failed to upload." });
 });
+app.post("/requestForm", upload.single("form"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (req.file) {
+        const file = req.file;
+        yield database_1.default.thread.update({
+            where: {
+                refId: req.body.requestId
+            },
+            data: {
+                reqForm: `${process.env.BASE_URL}/media/${file.filename}`
+            }
+        });
+        return res.status(200).json({
+            fileName: req.body.requestId,
+            fileUrl: `${process.env.BASE_URL}/media/${file.filename}`,
+            fileType: file.mimetype
+        });
+    }
+    return res.status(400).json({ message: "Failed to upload." });
+}));
 //setting vapid keys details
 web_push_1.default.setVapidDetails("mailto: <nathan.almazan1004@gmail.com>", process.env.PUBLIC_VAPID_KEY, process.env.PRIVATE_VAPID_KEY);
 //subscribe route

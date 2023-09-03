@@ -115,6 +115,28 @@ app.post("/upload", upload.array("files"), (req, res) => {
     return res.status(400).json({ message: "Failed to upload." });
 });
 
+app.post("/requestForm", upload.single("form"), async (req, res) => {
+    if (req.file) {
+        const file: Express.Multer.File = req.file as unknown as Express.Multer.File;
+
+        await dbClient.thread.update({
+            where: {
+                refId: req.body.requestId
+            },
+            data: {
+                reqForm: `${process.env.BASE_URL}/media/${file.filename}`
+            }
+        })
+
+        return res.status(200).json({
+            fileName: req.body.requestId,
+            fileUrl: `${process.env.BASE_URL}/media/${file.filename}`,
+            fileType: file.mimetype
+        });
+    }
+    return res.status(400).json({ message: "Failed to upload." });
+});
+
 //setting vapid keys details
 webpush.setVapidDetails("mailto: <nathan.almazan1004@gmail.com>", process.env.PUBLIC_VAPID_KEY as string, process.env.PRIVATE_VAPID_KEY as string);
 

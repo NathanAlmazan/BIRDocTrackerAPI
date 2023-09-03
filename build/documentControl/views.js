@@ -136,8 +136,8 @@ exports.queryFields = {
             userId: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
             },
-            completed: {
-                type: graphql_1.GraphQLBoolean
+            type: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
             }
         },
         resolve: controller_1.resolveGetInboxThread
@@ -147,18 +147,29 @@ exports.queryFields = {
         args: {
             userId: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            type: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
             }
         },
         resolve: controller_1.resolveGetCreatedThread
     },
     getAllThread: {
         type: new graphql_1.GraphQLList(model_1.ThreadObject),
+        args: {
+            memos: {
+                type: graphql_1.GraphQLBoolean
+            }
+        },
         resolve: controller_1.resolveGetAllInbox
     },
     getUserNotifications: {
-        type: new graphql_1.GraphQLList(model_1.MessagesObject),
+        type: new graphql_1.GraphQLList(model_1.ThreadObject),
         args: {
             userId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            type: {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
             }
         },
@@ -197,6 +208,24 @@ exports.queryFields = {
             }
         },
         resolve: controller_1.resolveThreadTypeAnalytics
+    },
+    getThreadPurposeAnalytics: {
+        type: new graphql_1.GraphQLList(model_1.AnalyticsObject),
+        args: {
+            officeId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            },
+            superuser: {
+                type: graphql_1.GraphQLBoolean
+            },
+            startDate: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            endDate: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveThreadPurposeAnalytics
     }
 };
 //# sourceMappingURL=views.js.map

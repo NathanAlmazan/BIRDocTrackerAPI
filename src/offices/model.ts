@@ -27,6 +27,9 @@ export const BirOfficeObject: GraphQLObjectType = new GraphQLObjectType<BirOffic
         officeName: {
             type: new GraphQLNonNull(GraphQLString)
         },
+        refNum: {
+            type: GraphQLString
+        },
         officeSections: {
             type: new GraphQLList(OfficeSectionObject),
             resolve: async (parent: BirOffices) => {
@@ -106,6 +109,9 @@ export const UserAccountObject: GraphQLObjectType = new GraphQLObjectType<UserAc
         },
         firstName: {
             type: new GraphQLNonNull(GraphQLString)
+        },
+        signImage: {
+            type: GraphQLString
         },
         lastName: {
             type: new GraphQLNonNull(GraphQLString)

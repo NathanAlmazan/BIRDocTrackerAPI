@@ -36,12 +36,16 @@ model DocumentStatus {
   statusId        Int         @id @default(autoincrement())
   statusLabel     String      @db.VarChar(50)
   threads         Thread[]
+  purposes        DocumentPurpose[]
+  history         ThreadHistory[]
 }
 
 model DocumentPurpose {
   purposeId       Int         @id @default(autoincrement())
   purposeName     String      @db.VarChar(50)
   actionable      Boolean     @default(true)
+  initStatusId    Int?
+  initStatus      DocumentStatus?  @relation(fields: [initStatusId], references: [statusId], onDelete: SetNull)
   threads         Thread[]
 }
 
@@ -58,6 +62,7 @@ model UserAccounts {
   lastName        String      @db.VarChar(50)
   officeId        Int
   password        String
+  signImage       String?
   roleId          Int
   resetCode       String?     @db.VarChar(6)
   active          Boolean     @default(true)
@@ -68,12 +73,24 @@ model UserAccounts {
   messages        Messages[]
 }
 
+model ThreadHistory {
+  historyId       BigInt     @id  @default(autoincrement())
+  historyLabel    String     @db.VarChar(100)
+  dateCreated     DateTime   @db.Timestamp(3) @default(now())
+  threadId        String     @db.Uuid
+  thread          Thread     @relation(fields: [threadId], references: [refId], onDelete: Cascade)
+  statusId        Int?
+  status          DocumentStatus?  @relation(fields: [statusId], references: [statusId], onDelete: SetNull)
+}
+
 model Thread {
   refId           String          @id @db.Uuid @default(uuid())    
   refSlipNum      String          @db.VarChar(20)
   subject         String          @db.VarChar(255)
   revision        Int             @default(0)
   authorId        String          @db.Uuid
+  reqForm         String?
+  broadcast       Boolean         @default(false)
   statusId        Int
   recipientId     Int
   docTypeId       Int
@@ -89,6 +106,7 @@ model Thread {
   docType         DocumentTypes   @relation(fields: [docTypeId], references: [docId])
   purpose         DocumentPurpose @relation(fields: [purposeId], references: [purposeId])
   messages        Messages[]
+  history         ThreadHistory[]
 }
 
 model Messages {

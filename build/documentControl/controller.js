@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -79,6 +79,7 @@ exports.resolveGetAllThreadPurpose = resolveGetAllThreadPurpose;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     const current = new Date();
+    // get the total document this month to generate the reference number
     const threadCount = yield database_1.default.thread.aggregate({
         where: {
             dateCreated: {
@@ -89,6 +90,7 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
             refId: true
         }
     });
+    // get the document purpose details to initialize status
     const purpose = yield database_1.default.documentPurpose.findUnique({
         where: {
             purposeId: args.data.purposeId
@@ -100,9 +102,29 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
                 code: 'BAD_REQUEST'
             }
         });
+    // get the recipient office section when set to broadcast
+    let recipientId = args.data.recipientId;
+    let broadcast = false;
+    if (recipientId < 0) {
+        const section = yield database_1.default.officeSections.findFirst({
+            where: {
+                officeId: Math.abs(recipientId),
+                sectionName: 'default'
+            }
+        });
+        if (!section)
+            throw new graphql_1.GraphQLError('Thread recipient does not exist', {
+                extensions: {
+                    code: 'BAD_REQUEST'
+                }
+            });
+        recipientId = section.sectionId;
+        broadcast = true;
+    }
+    // get the recipient details for reference number
     const recipient = yield database_1.default.officeSections.findUnique({
         where: {
-            sectionId: args.data.recipientId
+            sectionId: recipientId
         },
         select: {
             office: {
@@ -120,15 +142,15 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
         });
     // get initial status based on purpose
     let status = 2;
-    if (args.data.purposeId === 1)
-        status = 5;
-    else if (args.data.purposeId === 10)
-        status = 3;
-    else if (!purpose.actionable)
-        status = 1;
-    console.log(args.data.purposeId);
+    if (purpose.initStatusId)
+        status = purpose.initStatusId;
     return yield database_1.default.thread.create({
-        data: Object.assign(Object.assign({}, args.data), { refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`, statusId: status, completed: !purpose.actionable })
+        data: Object.assign(Object.assign({}, args.data), { refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`, statusId: status, completed: !purpose.actionable, recipientId: recipientId, broadcast: broadcast, history: {
+                create: {
+                    historyLabel: 'Request Created',
+                    statusId: status
+                }
+            } })
     });
 });
 exports.resolveCreateThread = resolveCreateThread;
@@ -142,6 +164,7 @@ const resolveCreateMessage = (_, args) => __awaiter(void 0, void 0, void 0, func
             revision: true,
             authorId: true,
             subject: true,
+            broadcast: true,
             recipient: {
                 select: {
                     sectionId: true,
@@ -204,8 +227,8 @@ const resolveCreateMessage = (_, args) => __awaiter(void 0, void 0, void 0, func
     });
     // if author send to notification to recipient
     if (thread.authorId === args.data.senderId) {
-        // broadcast to all sections if default
-        if (thread.recipient.sectionName === 'default') {
+        // broadcast to all sections if set to broadcast
+        if (thread.broadcast) {
             const allSections = yield database_1.default.officeSections.findMany({
                 where: {
                     officeId: thread.recipient.officeId
@@ -277,21 +300,40 @@ const resolveUpdateThreadStatus = (_, args) => __awaiter(void 0, void 0, void 0,
         data: {
             statusId: args.statusId,
             attachments: args.attachments,
-            completed: completedId.includes(args.statusId)
+            completed: completedId.includes(args.statusId),
+            history: {
+                create: {
+                    historyLabel: 'Request Updated',
+                    statusId: args.statusId
+                }
+            }
         }
     });
 });
 exports.resolveUpdateThreadStatus = resolveUpdateThreadStatus;
-// should change if we already have authentication
 const resolveGetCreatedThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield database_1.default.thread.findMany({
+    const inboxes = yield database_1.default.thread.findMany({
         where: {
             authorId: args.userId
         },
         orderBy: {
             dateDue: 'desc'
+        },
+        include: {
+            status: true,
+            purpose: true
         }
     });
+    switch (args.type) {
+        case 'pending':
+            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);
+        case 'memos':
+            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+        case "finished":
+            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        default:
+            return inboxes;
+    }
 });
 exports.resolveGetCreatedThread = resolveGetCreatedThread;
 const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
@@ -333,22 +375,37 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
                 code: 'BAD_REQUEST'
             }
         });
-    return yield database_1.default.thread.findMany({
+    // fetch all inboxes
+    const inboxes = yield database_1.default.thread.findMany({
         where: {
             OR: [
                 {
                     recipientId: user.officeId
                 },
                 {
-                    recipientId: defaultOffice.sectionId
+                    recipientId: defaultOffice.sectionId,
+                    broadcast: true
                 }
-            ],
-            completed: args.completed ? true : false
+            ]
         },
         orderBy: {
             dateDue: 'desc'
+        },
+        include: {
+            status: true,
+            purpose: true
         }
     });
+    switch (args.type) {
+        case 'pending':
+            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);
+        case 'memos':
+            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+        case "finished":
+            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        default:
+            return inboxes;
+    }
 });
 exports.resolveGetInboxThread = resolveGetInboxThread;
 const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
@@ -391,41 +448,98 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                 code: 'BAD_REQUEST'
             }
         });
-    return yield database_1.default.messages.findMany({
-        where: {
-            thread: {
-                OR: [
-                    {
-                        recipientId: user.officeId
-                    },
-                    {
-                        recipientId: defaultOffice.sectionId
-                    },
-                    {
-                        authorId: user.accountId
+    switch (args.type) {
+        case "unread":
+            return yield database_1.default.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        },
+                        {
+                            authorId: user.accountId
+                        }
+                    ],
+                    messages: {
+                        some: {
+                            read: false,
+                            NOT: {
+                                senderId: args.userId
+                            }
+                        }
                     }
-                ]
-            },
-            NOT: {
-                senderId: user.accountId
-            },
-            read: false
-        },
-        orderBy: {
-            dateSent: 'desc'
-        }
-    });
+                }
+            });
+        case "overdue":
+            return yield database_1.default.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        }
+                    ],
+                    dateDue: {
+                        lt: new Date().toISOString()
+                    },
+                    completed: false
+                }
+            });
+        default:
+            return yield database_1.default.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        }
+                    ],
+                    purpose: {
+                        purposeName: {
+                            contains: "Approval"
+                        }
+                    },
+                    completed: false
+                }
+            });
+    }
 });
 exports.resolveGetNotifications = resolveGetNotifications;
-const resolveGetAllInbox = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield database_1.default.thread.findMany({
-        where: {
-            completed: false
-        },
-        orderBy: {
-            dateDue: 'desc'
-        }
-    });
+const resolveGetAllInbox = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!args.memos)
+        return yield database_1.default.thread.findMany({
+            where: {
+                completed: false,
+                purpose: {
+                    actionable: true
+                }
+            },
+            orderBy: {
+                dateDue: 'desc'
+            }
+        });
+    else
+        return yield database_1.default.thread.findMany({
+            where: {
+                completed: true,
+                purpose: {
+                    actionable: false
+                }
+            },
+            orderBy: {
+                dateDue: 'desc'
+            }
+        });
 });
 exports.resolveGetAllInbox = resolveGetAllInbox;
 const resolveSetMessageAsRead = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
@@ -598,4 +712,85 @@ const resolveThreadTypeAnalytics = (_, args) => __awaiter(void 0, void 0, void 0
     }));
 });
 exports.resolveThreadTypeAnalytics = resolveThreadTypeAnalytics;
+const resolveThreadPurposeAnalytics = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    if (args.superuser) {
+        const analytics = yield database_1.default.thread.groupBy({
+            by: ['statusId', 'purposeId'],
+            where: {
+                dateCreated: {
+                    gte: new Date(args.startDate).toISOString(),
+                    lte: new Date(args.endDate).toISOString()
+                }
+            },
+            _count: {
+                refId: true
+            }
+        });
+        return analytics.map(data => ({
+            statusId: data.statusId,
+            purposeId: data.purposeId,
+            count: data._count.refId
+        }));
+    }
+    // fetch section
+    const section = yield database_1.default.officeSections.findUnique({
+        where: {
+            sectionId: args.officeId
+        },
+        select: {
+            sectionId: true,
+            officeId: true
+        }
+    });
+    if (!section)
+        throw new graphql_1.GraphQLError('Office does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    // fetch office default
+    const defaultOffice = yield database_1.default.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: section.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    });
+    if (!defaultOffice)
+        throw new graphql_1.GraphQLError('Office does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    const analytics = yield database_1.default.thread.groupBy({
+        by: ['statusId', 'purposeId'],
+        where: {
+            OR: [
+                {
+                    recipientId: section.sectionId
+                },
+                {
+                    recipientId: defaultOffice.sectionId
+                }
+            ],
+            dateCreated: {
+                gte: new Date(args.startDate).toISOString(),
+                lte: new Date(args.endDate).toISOString()
+            }
+        },
+        _count: {
+            refId: true
+        }
+    });
+    return analytics.map(data => ({
+        statusId: data.statusId,
+        purposeId: data.purposeId,
+        count: data._count.refId
+    }));
+});
+exports.resolveThreadPurposeAnalytics = resolveThreadPurposeAnalytics;
 //# sourceMappingURL=controller.js.map

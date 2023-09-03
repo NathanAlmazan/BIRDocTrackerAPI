@@ -2,6 +2,7 @@ import { GraphQLError } from "graphql"
 import dbClient from "../database"
 import { MessageCreateInput, ThreadCreateInput } from "./validation"
 import webpush from 'web-push';
+import e from "express";
 
 
 // =============================================== Thread Status Controller ================================================ //
@@ -73,6 +74,7 @@ export const resolveGetAllThreadPurpose = async () => {
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     const current = new Date();
 
+    // get the total document this month to generate the reference number
     const threadCount = await dbClient.thread.aggregate({
         where: {
             dateCreated: {
@@ -84,6 +86,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     });
 
+    // get the document purpose details to initialize status
     const purpose = await dbClient.documentPurpose.findUnique({
         where: {
             purposeId: args.data.purposeId
@@ -96,9 +99,31 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     })
 
+    // get the recipient office section when set to broadcast
+    let recipientId = args.data.recipientId;
+    let broadcast = false;
+    if (recipientId < 0) {
+        const section = await dbClient.officeSections.findFirst({
+            where: {
+                officeId: Math.abs(recipientId),
+                sectionName: 'default'
+            }
+        })
+
+        if (!section) throw new GraphQLError('Thread recipient does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        })
+
+        recipientId = section.sectionId;
+        broadcast = true;
+    }
+
+    // get the recipient details for reference number
     const recipient = await dbClient.officeSections.findUnique({
         where: {
-            sectionId: args.data.recipientId
+            sectionId: recipientId
         },
         select: {
             office: {
@@ -117,18 +142,22 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
 
     // get initial status based on purpose
     let status = 2;
-    if (args.data.purposeId === 1) status = 5;
-    else if (args.data.purposeId === 10) status = 3;
-    else if (!purpose.actionable) status = 1;
-
-    console.log(args.data.purposeId);
+    if (purpose.initStatusId) status = purpose.initStatusId;
 
     return await dbClient.thread.create({
         data: {
             ...args.data,
             refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
             statusId: status,
-            completed: !purpose.actionable
+            completed: !purpose.actionable,
+            recipientId: recipientId,
+            broadcast: broadcast,
+            history: {
+                create: {
+                    historyLabel: 'Request Created',
+                    statusId: status
+                }
+            }
         }
     })
 }
@@ -143,6 +172,7 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
             revision: true,
             authorId: true,
             subject: true,
+            broadcast: true,
             recipient: {
                 select: {
                     sectionId: true,
@@ -209,8 +239,8 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
 
     // if author send to notification to recipient
     if (thread.authorId === args.data.senderId) {
-        // broadcast to all sections if default
-        if (thread.recipient.sectionName === 'default') {
+        // broadcast to all sections if set to broadcast
+        if (thread.broadcast) {
             const allSections = await dbClient.officeSections.findMany({
                 where: {
                     officeId: thread.recipient.officeId
@@ -282,24 +312,47 @@ export const resolveUpdateThreadStatus = async (_: any, args: { uid: string, sta
         data: {
             statusId: args.statusId,
             attachments: args.attachments,
-            completed: completedId.includes(args.statusId)
+            completed: completedId.includes(args.statusId),
+            history: {
+                create: {
+                    historyLabel: 'Request Updated',
+                    statusId: args.statusId
+                }
+            }
         }
     })
 }
 
-// should change if we already have authentication
-export const resolveGetCreatedThread = async (_: any, args: { userId: string }) => {
-    return await dbClient.thread.findMany({
+
+export type InboxType = "pending" | "memos" | "finished" | "search";
+
+export const resolveGetCreatedThread = async (_: any, args: { userId: string, type: InboxType }) => {
+    const inboxes = await dbClient.thread.findMany({
         where: {
             authorId: args.userId
         },
         orderBy: {
             dateDue: 'desc'
-        }  
+        },
+        include: {
+            status: true,
+            purpose: true
+        }
     })
+
+    switch (args.type) {
+        case 'pending':
+            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);   
+        case 'memos':
+            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+        case "finished":
+            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        default:
+            return inboxes;
+    }
 }
 
-export const resolveGetInboxThread = async (_: any, args: { userId: string, completed?: boolean }) => {
+export const resolveGetInboxThread = async (_: any, args: { userId: string, type: InboxType | null }) => {
     // fetch user office
     const user = await dbClient.userAccounts.findUnique({
         where: {
@@ -340,25 +393,43 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, comp
         }
     })
 
-    return await dbClient.thread.findMany({
+    // fetch all inboxes
+    const inboxes = await dbClient.thread.findMany({
         where: {
             OR: [
                 {
                     recipientId: user.officeId
                 },
                 {
-                    recipientId: defaultOffice.sectionId
+                    recipientId: defaultOffice.sectionId,
+                    broadcast: true
                 }
-            ],
-            completed: args.completed ? true : false
+            ]
         },
         orderBy: {
             dateDue: 'desc'
+        },
+        include: {
+            status: true,
+            purpose: true
         }
     })
+
+    switch (args.type) {
+        case 'pending':
+            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);    
+        case 'memos':
+            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+        case "finished":
+            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        default:
+            return inboxes;
+    }
 }
 
-export const resolveGetNotifications = async (_: any, args: { userId: string }) => {
+type NotificationType = "unread" | "approval" | "overdue";
+
+export const resolveGetNotifications = async (_: any, args: { userId: string, type: NotificationType }) => {
     // fetch user office
     const user = await dbClient.userAccounts.findUnique({
         where: {
@@ -400,36 +471,91 @@ export const resolveGetNotifications = async (_: any, args: { userId: string }) 
         }
     })
 
-    return await dbClient.messages.findMany({
-        where: {
-            thread: {
-                OR: [
-                    {
-                        recipientId: user.officeId
-                    },
-                    {
-                        recipientId: defaultOffice.sectionId
-                    },
-                    {
-                        authorId: user.accountId
+    switch(args.type) {
+        case "unread":
+            return await dbClient.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        },
+                        {
+                            authorId: user.accountId
+                        }
+                    ],
+                    messages: {
+                        some: {
+                            read: false,
+                            NOT: {
+                                senderId: args.userId
+                            }
+                        }
                     }
-                ]
-            },
-            NOT: {
-                senderId: user.accountId
-            },
-            read: false
-        },
-        orderBy: {
-            dateSent: 'desc'
-        }
-    })
+                }
+            })
+        case "overdue":
+            return await dbClient.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        }
+                    ],
+                    dateDue: {
+                        lt: new Date().toISOString()
+                    },
+                    completed: false
+                }
+            })
+        default:
+            return await dbClient.thread.findMany({
+                where: {
+                    OR: [
+                        {
+                            recipientId: user.officeId
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        }
+                    ],
+                    purpose: {
+                        purposeName: {
+                            contains: "Approval"
+                        }
+                    },
+                    completed: false
+                }
+            })
+    }
 }
 
-export const resolveGetAllInbox = async () => {
-    return await dbClient.thread.findMany({
+export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
+    if (!args.memos) return await dbClient.thread.findMany({
         where: {
-            completed: false
+            completed: false,
+            purpose: {
+                actionable: true
+            }
+        },
+        orderBy: {
+            dateDue: 'desc'
+        }
+    });
+    else return await dbClient.thread.findMany({
+        where: {
+            completed: true,
+            purpose: {
+                actionable: false
+            }
         },
         orderBy: {
             dateDue: 'desc'
@@ -616,6 +742,93 @@ export const resolveThreadTypeAnalytics = async (_: any, args: { officeId: numbe
     return analytics.map(data => ({
         statusId: data.statusId,
         docTypeId: data.docTypeId,
+        count: data._count.refId
+    }))
+}
+
+export const resolveThreadPurposeAnalytics = async (_: any, args: { officeId: number, startDate: string, endDate: string, superuser: boolean | null }) => {
+    
+    if (args.superuser) {
+        const analytics = await dbClient.thread.groupBy({
+            by: ['statusId', 'purposeId'],
+            where: {
+                dateCreated: {
+                    gte: new Date(args.startDate).toISOString(),
+                    lte: new Date(args.endDate).toISOString()
+                }
+            },
+            _count: {
+                refId: true
+            }
+        })
+
+        return analytics.map(data => ({
+            statusId: data.statusId,
+            purposeId: data.purposeId,
+            count: data._count.refId
+        }))
+    }
+
+    // fetch section
+    const section = await dbClient.officeSections.findUnique({
+        where: {
+            sectionId: args.officeId
+        },
+        select: {
+            sectionId: true,
+            officeId: true
+        }
+    })
+
+    if (!section) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // fetch office default
+    const defaultOffice = await dbClient.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: section.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    })
+
+    if (!defaultOffice) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const analytics = await dbClient.thread.groupBy({
+        by: ['statusId', 'purposeId'],
+        where: {
+            OR: [
+                {
+                    recipientId: section.sectionId
+                },
+                {
+                    recipientId: defaultOffice.sectionId
+                }
+            ],
+            dateCreated: {
+                gte: new Date(args.startDate).toISOString(),
+                lte: new Date(args.endDate).toISOString()
+            }
+        },
+        _count: {
+            refId: true
+        }
+    })
+
+    return analytics.map(data => ({
+        statusId: data.statusId,
+        purposeId: data.purposeId,
         count: data._count.refId
     }))
 }

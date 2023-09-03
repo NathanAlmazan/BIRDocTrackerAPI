@@ -26,6 +26,9 @@ exports.BirOfficeObject = new graphql_1.GraphQLObjectType({
         officeName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
+        refNum: {
+            type: graphql_1.GraphQLString
+        },
         officeSections: {
             type: new graphql_1.GraphQLList(exports.OfficeSectionObject),
             resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
@@ -101,6 +104,9 @@ exports.UserAccountObject = new graphql_1.GraphQLObjectType({
         },
         firstName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        signImage: {
+            type: graphql_1.GraphQLString
         },
         lastName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
