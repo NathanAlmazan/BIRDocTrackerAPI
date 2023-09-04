@@ -85,7 +85,7 @@ model ThreadHistory {
 
 model Thread {
   refId           String          @id @db.Uuid @default(uuid())    
-  refSlipNum      String          @db.VarChar(20)
+  refSlipNum      String          @db.VarChar(50)
   subject         String          @db.VarChar(255)
   revision        Int             @default(0)
   authorId        String          @db.Uuid
