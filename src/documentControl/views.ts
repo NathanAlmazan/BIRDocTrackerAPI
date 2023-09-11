@@ -30,6 +30,7 @@ import {
     resolveGetInboxThread, 
     resolveGetNotifications, 
     resolveGetThreadById, 
+    resolveGetThreadSummary, 
     resolveRestoreThread, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
@@ -290,5 +291,17 @@ export const queryFields = {
             }
         },
         resolve: resolveThreadPurposeAnalytics
+    },
+    getThreadSummary: {
+        type: new GraphQLList(ThreadObject),
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            dateCreated: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveGetThreadSummary
     }
 }

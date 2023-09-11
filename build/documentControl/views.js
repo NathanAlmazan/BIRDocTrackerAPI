@@ -244,6 +244,18 @@ exports.queryFields = {
             }
         },
         resolve: controller_1.resolveThreadPurposeAnalytics
+    },
+    getThreadSummary: {
+        type: new graphql_1.GraphQLList(model_1.ThreadObject),
+        args: {
+            userId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            dateCreated: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveGetThreadSummary
     }
 };
 //# sourceMappingURL=views.js.map

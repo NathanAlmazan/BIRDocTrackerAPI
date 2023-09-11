@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveGetThreadSummary = exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -84,7 +84,8 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
-            }
+            },
+            recipientId: args.data.recipientId
         },
         _count: {
             refId: true
@@ -491,6 +492,7 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                             authorId: user.accountId
                         }
                     ],
+                    active: true,
                     messages: {
                         some: {
                             read: false,
@@ -516,7 +518,8 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                     dateDue: {
                         lt: new Date().toISOString()
                     },
-                    completed: false
+                    completed: false,
+                    active: true
                 }
             });
         default:
@@ -536,7 +539,8 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                             contains: "Approval"
                         }
                     },
-                    completed: false
+                    completed: false,
+                    active: true
                 }
             });
     }
@@ -823,4 +827,82 @@ const resolveThreadPurposeAnalytics = (_, args) => __awaiter(void 0, void 0, voi
     }));
 });
 exports.resolveThreadPurposeAnalytics = resolveThreadPurposeAnalytics;
+const resolveGetThreadSummary = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    // fetch user office
+    const user = yield database_1.default.userAccounts.findUnique({
+        where: {
+            accountId: args.userId
+        },
+        select: {
+            officeId: true,
+            office: {
+                select: {
+                    officeId: true
+                }
+            },
+            role: {
+                select: {
+                    superuser: true
+                }
+            }
+        }
+    });
+    if (!user)
+        throw new graphql_1.GraphQLError('User does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    // if admin return all
+    if (user.role.superuser)
+        return yield database_1.default.thread.findMany({
+            where: {
+                dateCreated: {
+                    gte: new Date(args.dateCreated).toISOString()
+                }
+            },
+            orderBy: {
+                dateDue: 'desc'
+            }
+        });
+    // fetch office default
+    const defaultOffice = yield database_1.default.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: user.office.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    });
+    if (!defaultOffice)
+        throw new graphql_1.GraphQLError('Office does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    // fetch all inboxes
+    return yield database_1.default.thread.findMany({
+        where: {
+            OR: [
+                {
+                    recipientId: user.officeId
+                },
+                {
+                    recipientId: defaultOffice.sectionId,
+                    broadcast: true
+                }
+            ],
+            dateCreated: {
+                gte: new Date(args.dateCreated).toISOString()
+            }
+        },
+        orderBy: {
+            dateDue: 'desc'
+        }
+    });
+});
+exports.resolveGetThreadSummary = resolveGetThreadSummary;
 //# sourceMappingURL=controller.js.map

@@ -78,7 +78,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
-            }
+            },
+            recipientId: args.data.recipientId
         },
         _count: {
             refId: true
@@ -512,6 +513,7 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                             authorId: user.accountId
                         }
                     ],
+                    active: true,
                     messages: {
                         some: {
                             read: false,
@@ -537,7 +539,8 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                     dateDue: {
                         lt: new Date().toISOString()
                     },
-                    completed: false
+                    completed: false,
+                    active: true
                 }
             })
         default:
@@ -557,7 +560,8 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                             contains: "Approval"
                         }
                     },
-                    completed: false
+                    completed: false,
+                    active: true
                 }
             })
     }
@@ -859,4 +863,84 @@ export const resolveThreadPurposeAnalytics = async (_: any, args: { officeId: nu
         purposeId: data.purposeId,
         count: data._count.refId
     }))
+}
+
+export const resolveGetThreadSummary = async (_: any, args: { userId: string, dateCreated: Date }) => {
+    // fetch user office
+    const user = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: args.userId
+        },
+        select: {
+            officeId: true,
+            office: {
+                select: {
+                    officeId: true
+                }
+            },
+            role: {
+                select: {
+                    superuser: true
+                }
+            }
+        }
+    })
+
+    if (!user) throw new GraphQLError('User does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // if admin return all
+    if(user.role.superuser) return await dbClient.thread.findMany({
+        where: {
+            dateCreated: {
+                gte: new Date(args.dateCreated).toISOString()
+            }
+        },
+        orderBy: {
+            dateDue: 'desc'
+        }
+    })
+
+    // fetch office default
+    const defaultOffice = await dbClient.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: user.office.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    })
+
+    if (!defaultOffice) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // fetch all inboxes
+    return await dbClient.thread.findMany({
+        where: {
+            OR: [
+                {
+                    recipientId: user.officeId
+                },
+                {
+                    recipientId: defaultOffice.sectionId,
+                    broadcast: true
+                }
+            ],
+            dateCreated: {
+                gte: new Date(args.dateCreated).toISOString()
+            }
+        },
+        orderBy: {
+            dateDue: 'desc'
+        }
+    })
 }
