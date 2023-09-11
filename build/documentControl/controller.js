@@ -340,7 +340,8 @@ exports.resolveUpdateThreadStatus = resolveUpdateThreadStatus;
 const resolveGetCreatedThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     const inboxes = yield database_1.default.thread.findMany({
         where: {
-            authorId: args.userId
+            authorId: args.userId,
+            active: args.type === "archived" ? false : true
         },
         orderBy: {
             dateDue: 'desc'
@@ -357,8 +358,6 @@ const resolveGetCreatedThread = (_, args) => __awaiter(void 0, void 0, void 0, f
             return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
-        case "archived":
-            return inboxes.filter(thread => !thread.active);
         default:
             return inboxes;
     }
@@ -646,7 +645,8 @@ const resolveStatusAnalytics = (_, args) => __awaiter(void 0, void 0, void 0, fu
                     recipientId: defaultOffice.sectionId
                 }
             ],
-            completed: args.completed
+            completed: args.completed,
+            active: true
         },
         _count: {
             refId: true
@@ -727,7 +727,8 @@ const resolveThreadTypeAnalytics = (_, args) => __awaiter(void 0, void 0, void 0
             dateCreated: {
                 gte: new Date(args.startDate).toISOString(),
                 lte: new Date(args.endDate).toISOString()
-            }
+            },
+            active: true
         },
         _count: {
             refId: true
@@ -808,7 +809,8 @@ const resolveThreadPurposeAnalytics = (_, args) => __awaiter(void 0, void 0, voi
             dateCreated: {
                 gte: new Date(args.startDate).toISOString(),
                 lte: new Date(args.endDate).toISOString()
-            }
+            },
+            active: true
         },
         _count: {
             refId: true

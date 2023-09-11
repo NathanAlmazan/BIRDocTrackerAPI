@@ -353,7 +353,8 @@ export type InboxType = "pending" | "memos" | "finished" | "search" | "archived"
 export const resolveGetCreatedThread = async (_: any, args: { userId: string, type: InboxType }) => {
     const inboxes = await dbClient.thread.findMany({
         where: {
-            authorId: args.userId
+            authorId: args.userId,
+            active: args.type === "archived" ? false : true
         },
         orderBy: {
             dateDue: 'desc'
@@ -371,8 +372,6 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
             return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
-        case "archived":
-            return inboxes.filter(thread => !thread.active);
         default:
             return inboxes;
     }
@@ -671,7 +670,8 @@ export const resolveStatusAnalytics = async (_: any, args: { officeId: number, c
                     recipientId: defaultOffice.sectionId
                 }
             ],
-            completed: args.completed
+            completed: args.completed,
+            active: true
         },
         _count: {
             refId: true
@@ -758,7 +758,8 @@ export const resolveThreadTypeAnalytics = async (_: any, args: { officeId: numbe
             dateCreated: {
                 gte: new Date(args.startDate).toISOString(),
                 lte: new Date(args.endDate).toISOString()
-            }
+            },
+            active: true
         },
         _count: {
             refId: true
@@ -845,7 +846,8 @@ export const resolveThreadPurposeAnalytics = async (_: any, args: { officeId: nu
             dateCreated: {
                 gte: new Date(args.startDate).toISOString(),
                 lte: new Date(args.endDate).toISOString()
-            }
+            },
+            active: true
         },
         _count: {
             refId: true
