@@ -2,7 +2,6 @@ import { GraphQLError } from "graphql"
 import dbClient from "../database"
 import { MessageCreateInput, ThreadCreateInput } from "./validation"
 import webpush from 'web-push';
-import e from "express";
 
 
 // =============================================== Thread Status Controller ================================================ //

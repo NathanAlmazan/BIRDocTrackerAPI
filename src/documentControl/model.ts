@@ -174,6 +174,9 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
         completed: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },
+        active: {
+            type: new GraphQLNonNull(GraphQLBoolean)
+        },
         dateCreated: {
             type: new GraphQLNonNull(GraphQLString),
             resolve: (parent) => {

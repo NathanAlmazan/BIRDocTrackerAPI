@@ -162,6 +162,9 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
         completed: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
         },
+        active: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
+        },
         dateCreated: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
             resolve: (parent) => {
