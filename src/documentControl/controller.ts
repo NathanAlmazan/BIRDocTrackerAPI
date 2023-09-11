@@ -430,7 +430,8 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
                     recipientId: defaultOffice.sectionId,
                     broadcast: true
                 }
-            ]
+            ],
+            active: true
         },
         orderBy: {
             dateDue: 'desc'
@@ -892,12 +893,19 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
         }
     })
 
+    // setup date range
+    const startDate = new Date(args.dateCreated);
+    const endDate = new Date(args.dateCreated);
+    endDate.setMonth(endDate.getMonth() + 1);
+
     // if admin return all
     if(user.role.superuser) return await dbClient.thread.findMany({
         where: {
             dateCreated: {
-                gte: new Date(args.dateCreated).toISOString()
-            }
+                gte: startDate.toISOString(),
+                lte: endDate.toISOString()
+            },
+            active: true
         },
         orderBy: {
             dateDue: 'desc'
@@ -936,8 +944,10 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
                 }
             ],
             dateCreated: {
-                gte: new Date(args.dateCreated).toISOString()
-            }
+                gte: startDate.toISOString(),
+                lte: endDate.toISOString()
+            },
+            active: true
         },
         orderBy: {
             dateDue: 'desc'

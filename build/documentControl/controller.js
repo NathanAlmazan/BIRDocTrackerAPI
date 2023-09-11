@@ -414,7 +414,8 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
                     recipientId: defaultOffice.sectionId,
                     broadcast: true
                 }
-            ]
+            ],
+            active: true
         },
         orderBy: {
             dateDue: 'desc'
@@ -853,13 +854,19 @@ const resolveGetThreadSummary = (_, args) => __awaiter(void 0, void 0, void 0, f
                 code: 'BAD_REQUEST'
             }
         });
+    // setup date range
+    const startDate = new Date(args.dateCreated);
+    const endDate = new Date(args.dateCreated);
+    endDate.setMonth(endDate.getMonth() + 1);
     // if admin return all
     if (user.role.superuser)
         return yield database_1.default.thread.findMany({
             where: {
                 dateCreated: {
-                    gte: new Date(args.dateCreated).toISOString()
-                }
+                    gte: startDate.toISOString(),
+                    lte: endDate.toISOString()
+                },
+                active: true
             },
             orderBy: {
                 dateDue: 'desc'
@@ -896,8 +903,10 @@ const resolveGetThreadSummary = (_, args) => __awaiter(void 0, void 0, void 0, f
                 }
             ],
             dateCreated: {
-                gte: new Date(args.dateCreated).toISOString()
-            }
+                gte: startDate.toISOString(),
+                lte: endDate.toISOString()
+            },
+            active: true
         },
         orderBy: {
             dateDue: 'desc'
