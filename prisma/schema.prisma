@@ -21,6 +21,7 @@ model OfficeSections {
   sectionId       Int         @id @default(autoincrement())
   sectionName     String      @db.VarChar(100)
   officeId        Int
+  refNum          String?
   office          BirOffices  @relation(fields: [officeId], references: [officeId], onDelete: Cascade)
   employees       UserAccounts[]
   threads         Thread[]
@@ -97,6 +98,7 @@ model Thread {
   purposeId       Int
   attachments     Boolean         @default(true)
   completed       Boolean         @default(false)
+  active          Boolean         @default(true)
   dateCreated     DateTime        @db.Timestamp(3) @default(now())
   dateUpdated     DateTime        @db.Timestamp(3) @updatedAt
   dateDue         DateTime

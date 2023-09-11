@@ -130,7 +130,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 select: {
                     refNum: true
                 }
-            }
+            },
+            refNum: true
         }
     })
 
@@ -142,12 +143,14 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
 
     // get initial status based on purpose
     let status = 2;
+    let sectionRef = '';
     if (purpose.initStatusId) status = purpose.initStatusId;
+    if (recipient.refNum) sectionRef = `${recipient.refNum}-`
 
     return await dbClient.thread.create({
         data: {
             ...args.data,
-            refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+            refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
             statusId: status,
             completed: !purpose.actionable,
             recipientId: recipientId,
@@ -158,6 +161,28 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                     statusId: status
                 }
             }
+        }
+    })
+}
+
+export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {
+    return await dbClient.thread.update({
+        where: {
+            refId: args.threadId
+        },
+        data: {
+            active: false
+        }
+    })
+}
+
+export const resolveRestoreThread = async (_: any, args: { threadId: string }) => {
+    return await dbClient.thread.update({
+        where: {
+            refId: args.threadId
+        },
+        data: {
+            active: true
         }
     })
 }
@@ -324,7 +349,7 @@ export const resolveUpdateThreadStatus = async (_: any, args: { uid: string, sta
 }
 
 
-export type InboxType = "pending" | "memos" | "finished" | "search";
+export type InboxType = "pending" | "memos" | "finished" | "search" | "archived";
 
 export const resolveGetCreatedThread = async (_: any, args: { userId: string, type: InboxType }) => {
     const inboxes = await dbClient.thread.findMany({
@@ -347,6 +372,8 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
             return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        case "archived":
+            return inboxes.filter(thread => !thread.active);
         default:
             return inboxes;
     }

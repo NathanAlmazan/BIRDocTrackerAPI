@@ -17,6 +17,7 @@ import {
     resolveAddThreadPurpose,
     resolveAddThreadStatus, 
     resolveAddThreadType, 
+    resolveArchiveThread, 
     resolveCreateMessage, 
     resolveCreateThread, 
     resolveDeleteThreadStatus, 
@@ -29,6 +30,7 @@ import {
     resolveGetInboxThread, 
     resolveGetNotifications, 
     resolveGetThreadById, 
+    resolveRestoreThread, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
     resolveThreadPurposeAnalytics, 
@@ -106,6 +108,24 @@ export const mutationFields = {
             }
         },
         resolve: resolveCreateThread
+    },
+    archiveThread: {
+        type: ThreadObject,
+        args: {
+            threadId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveArchiveThread
+    },
+    restoreThread: {
+        type: ThreadObject,
+        args: {
+            threadId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveRestoreThread
     },
     sendMessage: {
         type: MessagesObject,

@@ -57,6 +57,9 @@ export const OfficeSectionObject: GraphQLObjectType = new GraphQLObjectType<Offi
         sectionName: {
             type: new GraphQLNonNull(GraphQLString)
         },
+        refNum: {
+            type: GraphQLString
+        },
         admin: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },

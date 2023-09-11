@@ -67,6 +67,24 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveCreateThread
     },
+    archiveThread: {
+        type: model_1.ThreadObject,
+        args: {
+            threadId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveArchiveThread
+    },
+    restoreThread: {
+        type: model_1.ThreadObject,
+        args: {
+            threadId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveRestoreThread
+    },
     sendMessage: {
         type: model_1.MessagesObject,
         args: {

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -131,7 +131,8 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
                 select: {
                     refNum: true
                 }
-            }
+            },
+            refNum: true
         }
     });
     if (!recipient)
@@ -142,10 +143,13 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
         });
     // get initial status based on purpose
     let status = 2;
+    let sectionRef = '';
     if (purpose.initStatusId)
         status = purpose.initStatusId;
+    if (recipient.refNum)
+        sectionRef = `${recipient.refNum}-`;
     return yield database_1.default.thread.create({
-        data: Object.assign(Object.assign({}, args.data), { refSlipNum: `${recipient.office.refNum}-${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`, statusId: status, completed: !purpose.actionable, recipientId: recipientId, broadcast: broadcast, history: {
+        data: Object.assign(Object.assign({}, args.data), { refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`, statusId: status, completed: !purpose.actionable, recipientId: recipientId, broadcast: broadcast, history: {
                 create: {
                     historyLabel: 'Request Created',
                     statusId: status
@@ -154,6 +158,28 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
     });
 });
 exports.resolveCreateThread = resolveCreateThread;
+const resolveArchiveThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.thread.update({
+        where: {
+            refId: args.threadId
+        },
+        data: {
+            active: false
+        }
+    });
+});
+exports.resolveArchiveThread = resolveArchiveThread;
+const resolveRestoreThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.thread.update({
+        where: {
+            refId: args.threadId
+        },
+        data: {
+            active: true
+        }
+    });
+});
+exports.resolveRestoreThread = resolveRestoreThread;
 const resolveCreateMessage = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     // check if revision
     const thread = yield database_1.default.thread.findUnique({
@@ -331,6 +357,8 @@ const resolveGetCreatedThread = (_, args) => __awaiter(void 0, void 0, void 0, f
             return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+        case "archived":
+            return inboxes.filter(thread => !thread.active);
         default:
             return inboxes;
     }

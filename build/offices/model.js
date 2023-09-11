@@ -54,6 +54,9 @@ exports.OfficeSectionObject = new graphql_1.GraphQLObjectType({
         sectionName: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
         },
+        refNum: {
+            type: graphql_1.GraphQLString
+        },
         admin: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
         },
