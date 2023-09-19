@@ -131,7 +131,7 @@ export const mutationFields = {
                 type: new GraphQLNonNull(GraphQLString)
             },
             signImage: {
-                type: new GraphQLNonNull(GraphQLString)
+                type: GraphQLString
             }
         },
         resolve: resolveUploadSignature

@@ -96,7 +96,7 @@ exports.mutationFields = {
                 type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
             },
             signImage: {
-                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+                type: graphql_1.GraphQLString
             }
         },
         resolve: controller_1.resolveUploadSignature
