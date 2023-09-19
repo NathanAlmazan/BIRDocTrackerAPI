@@ -88,7 +88,9 @@ server.start().then(() => {
     app.use('/graphql', expressMiddleware(server));
 }).catch(err => console.error(err));
 
-// apis
+
+// ========================================== FILE UPLOADS ======================================== //
+
 const storage = multer.diskStorage({ 
     destination: (req, file, callback) => {
         callback(null, path.join(__dirname, 'uploads'));
@@ -136,6 +138,8 @@ app.post("/requestForm", upload.single("form"), async (req, res) => {
     }
     return res.status(400).json({ message: "Failed to upload." });
 });
+
+// ======================================= NOTIFICATION FEATURES ========================================== //
 
 //setting vapid keys details
 webpush.setVapidDetails("mailto: <nathan.almazan1004@gmail.com>", process.env.PUBLIC_VAPID_KEY as string, process.env.PRIVATE_VAPID_KEY as string);

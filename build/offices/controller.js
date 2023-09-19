@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveGetAllRoles = exports.resolveAddRole = exports.resolveDeleteOfficeSection = exports.resolveUpdateOfficeSection = exports.resolveCreateOfficeSection = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveUpdateOffice = exports.resolveAddOffice = void 0;
+exports.resolveUserLogin = exports.resolveChangePassword = exports.resolveGetAccountByUid = exports.resolveSetAccountInactive = exports.resolveUploadSignature = exports.resolveUpdateAccount = exports.resolveRegisterAccount = exports.resolveGetAllRoles = exports.resolveAddRole = exports.resolveDeleteOfficeSection = exports.resolveUpdateOfficeSection = exports.resolveCreateOfficeSection = exports.resolveDeleteOffice = exports.resolveGetAllOfficeSections = exports.resolveGetOfficeById = exports.resolveGetAllOffices = exports.resolveUpdateOffice = exports.resolveAddOffice = void 0;
 const graphql_1 = require("graphql");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const database_1 = __importDefault(require("../database"));
@@ -160,6 +160,17 @@ const resolveUpdateAccount = (_, args) => __awaiter(void 0, void 0, void 0, func
     });
 });
 exports.resolveUpdateAccount = resolveUpdateAccount;
+const resolveUploadSignature = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.userAccounts.update({
+        where: {
+            accountId: args.userId
+        },
+        data: {
+            signImage: args.signUrl
+        }
+    });
+});
+exports.resolveUploadSignature = resolveUploadSignature;
 const resolveSetAccountInactive = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     return yield database_1.default.userAccounts.update({
         where: {

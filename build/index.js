@@ -86,7 +86,7 @@ app.use('/media', express_1.default.static(path_1.default.join(__dirname, 'uploa
 server.start().then(() => {
     app.use('/graphql', (0, express4_1.expressMiddleware)(server));
 }).catch(err => console.error(err));
-// apis
+// ========================================== FILE UPLOADS ======================================== //
 const storage = multer_1.default.diskStorage({
     destination: (req, file, callback) => {
         callback(null, path_1.default.join(__dirname, 'uploads'));
@@ -127,6 +127,7 @@ app.post("/requestForm", upload.single("form"), (req, res) => __awaiter(void 0, 
     }
     return res.status(400).json({ message: "Failed to upload." });
 }));
+// ======================================= NOTIFICATION FEATURES ========================================== //
 //setting vapid keys details
 web_push_1.default.setVapidDetails("mailto: <nathan.almazan1004@gmail.com>", process.env.PUBLIC_VAPID_KEY, process.env.PRIVATE_VAPID_KEY);
 //subscribe route

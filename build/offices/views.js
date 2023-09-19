@@ -89,6 +89,18 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveUpdateAccount
     },
+    updateSignature: {
+        type: model_1.UserAccountObject,
+        args: {
+            userId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            },
+            signImage: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveUploadSignature
+    },
     setAccountInactive: {
         type: model_1.UserAccountObject,
         args: {
