@@ -124,7 +124,7 @@ export const mutationFields = {
         },
         resolve: resolveUpdateAccount
     },
-    updateSignature: {
+    uploadSignature: {
         type: UserAccountObject,
         args: {
             userId: {

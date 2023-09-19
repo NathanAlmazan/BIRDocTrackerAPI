@@ -161,13 +161,13 @@ export const resolveUpdateAccount = async (_: any, args: AccountUpdateInput) => 
     })
 }
 
-export const resolveUploadSignature = async (_: any, args: { userId: string, signUrl: string }) => {
+export const resolveUploadSignature = async (_: any, args: { userId: string, signImage: string }) => {
     return await dbClient.userAccounts.update({
         where: {
             accountId: args.userId
         },
         data: {
-            signImage: args.signUrl
+            signImage: args.signImage
         }
     })
 }

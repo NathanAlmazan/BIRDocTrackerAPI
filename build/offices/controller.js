@@ -166,7 +166,7 @@ const resolveUploadSignature = (_, args) => __awaiter(void 0, void 0, void 0, fu
             accountId: args.userId
         },
         data: {
-            signImage: args.signUrl
+            signImage: args.signImage
         }
     });
 });

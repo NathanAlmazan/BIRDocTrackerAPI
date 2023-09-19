@@ -89,7 +89,7 @@ exports.mutationFields = {
         },
         resolve: controller_1.resolveUpdateAccount
     },
-    updateSignature: {
+    uploadSignature: {
         type: model_1.UserAccountObject,
         args: {
             userId: {
