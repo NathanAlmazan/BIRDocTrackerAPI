@@ -68,6 +68,16 @@ export const resolveGetAllThreadPurpose = async () => {
     })
 }
 
+// =============================================== Thread Tags Controller ================================================= //
+
+export const resolveGetAllTags = async () => {
+    return await dbClient.threadTags.findMany({
+        orderBy: {
+            tagId: 'asc'
+        }
+    })
+}
+
 // =========================================== Thread and Messages Controller ============================================= //
 
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
@@ -400,6 +410,7 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
             accountId: args.userId
         },
         select: {
+            accountId: true,
             officeId: true,
             office: {
                 select: {
@@ -439,11 +450,16 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         where: {
             OR: [
                 {
-                    recipientId: user.officeId
+                    recipientId: user.officeId,
+                    recipientUserId: null
                 },
                 {
                     recipientId: defaultOffice.sectionId,
                     broadcast: true
+                },
+                {
+                    recipientId: user.officeId,
+                    recipientUserId: user.accountId
                 }
             ],
             active: true
@@ -519,7 +535,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,
@@ -545,7 +566,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,
@@ -564,7 +590,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,

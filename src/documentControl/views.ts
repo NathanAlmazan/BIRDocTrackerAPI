@@ -11,7 +11,8 @@ import {
     DocumentStatusObject, 
     DocumentTypeObject, 
     MessagesObject, 
-    ThreadObject
+    ThreadObject,
+    ThreadTagObject
 } from "./model";
 import { 
     resolveAddThreadPurpose,
@@ -23,6 +24,7 @@ import {
     resolveDeleteThreadStatus, 
     resolveDeleteThreadType, 
     resolveGetAllInbox, 
+    resolveGetAllTags, 
     resolveGetAllThreadPurpose, 
     resolveGetAllThreadStatus, 
     resolveGetAllThreadTypes, 
@@ -183,8 +185,11 @@ export const queryFields = {
         type: new GraphQLList(DocumentPurposeObject),
         resolve: resolveGetAllThreadPurpose
     },
-
-     // ===================== Fields for Thread and Messages ======================== //
+    getAllThreadTags: {
+        type: new GraphQLList(ThreadTagObject),
+        resolve: resolveGetAllTags
+    },
+    // ===================== Fields for Thread and Messages ======================== //
     getThreadById: {
         type: ThreadObject,
         args: {

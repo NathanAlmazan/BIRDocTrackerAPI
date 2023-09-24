@@ -12,6 +12,7 @@ import {
     resolveDeleteOffice, 
     resolveDeleteOfficeSection, 
     resolveGetAccountByUid, 
+    resolveGetAccountsByOffice, 
     resolveGetAllOfficeSections, 
     resolveGetAllOffices, 
     resolveGetAllRoles, 
@@ -205,7 +206,15 @@ export const queryFields = {
         },
         resolve: resolveGetAccountByUid
     },
-
+    getAccountsByOffice: {
+        type: new GraphQLList(UserAccountObject),
+        args: {
+            officeIds: {
+                type: new GraphQLList(GraphQLInt)
+            }
+        },
+        resolve: resolveGetAccountsByOffice
+    },
      // =============================== User Role Queries ======================================= //
      getAllRoles: {
         type: new GraphQLList(RoleObject),

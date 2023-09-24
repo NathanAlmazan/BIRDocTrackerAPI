@@ -191,6 +191,16 @@ export const resolveGetAccountByUid = async (_: any, args: { uid: string }) => {
     })
 }
 
+export const resolveGetAccountsByOffice = async (_: any, args: { officeIds: number[] }) => {
+    return await dbClient.userAccounts.findMany({
+        where: {
+            officeId: {
+                in: args.officeIds
+            }
+        }
+    })
+}
+
 // ===================================== Authentication ====================================== //
 
 export const resolveChangePassword = async (_: any, args: { data: UserChangePassword }) => {

@@ -167,6 +167,15 @@ exports.queryFields = {
         },
         resolve: controller_1.resolveGetAccountByUid
     },
+    getAccountsByOffice: {
+        type: new graphql_1.GraphQLList(model_1.UserAccountObject),
+        args: {
+            officeIds: {
+                type: new graphql_1.GraphQLList(graphql_1.GraphQLInt)
+            }
+        },
+        resolve: controller_1.resolveGetAccountsByOffice
+    },
     // =============================== User Role Queries ======================================= //
     getAllRoles: {
         type: new graphql_1.GraphQLList(model_1.RoleObject),

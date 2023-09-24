@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveGetThreadSummary = exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveGetThreadSummary = exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllTags = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -76,6 +76,15 @@ const resolveGetAllThreadPurpose = () => __awaiter(void 0, void 0, void 0, funct
     });
 });
 exports.resolveGetAllThreadPurpose = resolveGetAllThreadPurpose;
+// =============================================== Thread Tags Controller ================================================= //
+const resolveGetAllTags = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield database_1.default.threadTags.findMany({
+        orderBy: {
+            tagId: 'asc'
+        }
+    });
+});
+exports.resolveGetAllTags = resolveGetAllTags;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     const current = new Date();
@@ -391,6 +400,7 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
             accountId: args.userId
         },
         select: {
+            accountId: true,
             officeId: true,
             office: {
                 select: {
@@ -428,11 +438,16 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
         where: {
             OR: [
                 {
-                    recipientId: user.officeId
+                    recipientId: user.officeId,
+                    recipientUserId: null
                 },
                 {
                     recipientId: defaultOffice.sectionId,
                     broadcast: true
+                },
+                {
+                    recipientId: user.officeId,
+                    recipientUserId: user.accountId
                 }
             ],
             active: true
@@ -503,7 +518,12 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,
@@ -529,7 +549,12 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,
@@ -548,7 +573,12 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
                 where: {
                     OR: [
                         {
-                            recipientId: user.officeId
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             recipientId: defaultOffice.sectionId,

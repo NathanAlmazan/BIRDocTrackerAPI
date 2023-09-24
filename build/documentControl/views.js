@@ -138,6 +138,10 @@ exports.queryFields = {
         type: new graphql_1.GraphQLList(model_1.DocumentPurposeObject),
         resolve: controller_1.resolveGetAllThreadPurpose
     },
+    getAllThreadTags: {
+        type: new graphql_1.GraphQLList(model_1.ThreadTagObject),
+        resolve: controller_1.resolveGetAllTags
+    },
     // ===================== Fields for Thread and Messages ======================== //
     getThreadById: {
         type: model_1.ThreadObject,
