@@ -185,6 +185,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 docTypeId: args.data.docTypeId,
                 purposeId: args.data.purposeId,
                 attachments: args.data.attachments,
+                purposeNotes: args.data.purposeNotes,
+                tagId: args.data.tagId,
                 dateDue: args.data.dateDue,
                 refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
                 statusId: status,
