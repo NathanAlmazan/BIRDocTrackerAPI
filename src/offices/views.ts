@@ -21,6 +21,7 @@ import {
     resolveUpdateAccount,
     resolveUpdateOffice,
     resolveUpdateOfficeSection,
+    resolveUploadSignature,
     resolveUserLogin
 } from "./controller";
 import { 
@@ -122,6 +123,18 @@ export const mutationFields = {
             }
         },
         resolve: resolveUpdateAccount
+    },
+    uploadSignature: {
+        type: UserAccountObject,
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            signImage: {
+                type: GraphQLString
+            }
+        },
+        resolve: resolveUploadSignature
     },
     setAccountInactive: {
         type: UserAccountObject,
