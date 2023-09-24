@@ -87,6 +87,7 @@ const resolveGetAllTags = () => __awaiter(void 0, void 0, void 0, function* () {
 exports.resolveGetAllTags = resolveGetAllTags;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const current = new Date();
     // get the total document this month to generate the reference number
     const threadCount = yield database_1.default.thread.aggregate({
@@ -114,6 +115,21 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
                 code: 'BAD_REQUEST'
             }
         });
+    // get document officers
+    let officers = [];
+    if (args.data.recipientUserId.length > 0) {
+        officers = yield database_1.default.userAccounts.findMany({
+            where: {
+                accountId: {
+                    in: args.data.recipientUserId
+                }
+            },
+            select: {
+                accountId: true,
+                officeId: true
+            }
+        });
+    }
     // get the recipient office section when set to broadcast
     const threads = [];
     for (let i = 0; i < args.data.recipientId.length; i++) {
@@ -174,6 +190,7 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
                 statusId: status,
                 completed: !purpose.actionable,
                 recipientId: recipientId,
+                recipientUserId: (_a = officers.find(officer => officer.officeId === recipientId)) === null || _a === void 0 ? void 0 : _a.accountId,
                 broadcast: broadcast,
                 history: {
                     create: {

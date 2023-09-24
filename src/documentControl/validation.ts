@@ -22,7 +22,7 @@ export interface ThreadCreateInput {
         completed: boolean;
         dateDue: Date;
         purposeId: number;
-        recipientUserId: string | null;
+        recipientUserId: string[];
         tagId: number | null;
         purposeNotes: string | null;
     }
@@ -59,10 +59,10 @@ export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObject
             type: new GraphQLNonNull(GraphQLString)
         },
         tagId: {
-            type: new GraphQLNonNull(GraphQLInt)
+            type: GraphQLInt
         },
         recipientUserId: {
-            type: GraphQLString
+            type: new GraphQLList(GraphQLString)
         },
         purposeNotes: {
             type: GraphQLString

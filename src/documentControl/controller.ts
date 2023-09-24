@@ -110,6 +110,22 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
             code: 'BAD_REQUEST'
         }
     })
+    
+    // get document officers
+    let officers: { accountId: string, officeId: number }[] = []
+    if (args.data.recipientUserId.length > 0) {
+        officers = await dbClient.userAccounts.findMany({
+            where: {
+                accountId: {
+                    in: args.data.recipientUserId
+                }
+            },
+            select: {
+                accountId: true,
+                officeId: true
+            }
+        })
+    }
 
     // get the recipient office section when set to broadcast
     const threads = []
@@ -174,6 +190,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 statusId: status,
                 completed: !purpose.actionable,
                 recipientId: recipientId,
+                recipientUserId: officers.find(officer => officer.officeId === recipientId)?.accountId,
                 broadcast: broadcast,
                 history: {
                     create: {
