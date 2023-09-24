@@ -84,6 +84,12 @@ model ThreadHistory {
   status          DocumentStatus?  @relation(fields: [statusId], references: [statusId], onDelete: SetNull)
 }
 
+model ThreadTags {
+  tagId           Int       @id @default(autoincrement())
+  tagName         String    @db.VarChar(50)
+  threads         Thread[]
+}
+
 model Thread {
   refId           String          @id @db.Uuid @default(uuid())    
   refSlipNum      String          @db.VarChar(50)
@@ -94,8 +100,11 @@ model Thread {
   broadcast       Boolean         @default(false)
   statusId        Int
   recipientId     Int
+  recipientUserId String?         @db.Uuid
   docTypeId       Int
   purposeId       Int
+  tagId           Int?
+  purposeNotes    String?
   attachments     Boolean         @default(true)
   completed       Boolean         @default(false)
   active          Boolean         @default(true)
@@ -107,6 +116,7 @@ model Thread {
   recipient       OfficeSections  @relation(fields: [recipientId], references: [sectionId])
   docType         DocumentTypes   @relation(fields: [docTypeId], references: [docId])
   purpose         DocumentPurpose @relation(fields: [purposeId], references: [purposeId])
+  threadTag       ThreadTags?     @relation(fields: [tagId], references: [tagId])
   messages        Messages[]
   history         ThreadHistory[]
 }

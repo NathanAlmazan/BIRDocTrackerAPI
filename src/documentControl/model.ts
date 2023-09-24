@@ -5,7 +5,8 @@ import {
     MessageFiles, 
     Messages, 
     Thread, 
-    ThreadHistory
+    ThreadHistory,
+    ThreadTags
 } from "@prisma/client"
 import { 
     GraphQLBoolean, 
@@ -149,6 +150,19 @@ export const ThreadHistoryObject: GraphQLObjectType = new GraphQLObjectType<Thre
     })
 })
 
+
+export const ThreadTagObject: GraphQLObjectType = new GraphQLObjectType<ThreadTags>({
+    name: "ThreadTags",
+    fields: () => ({
+        tagId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        tagName: {
+            type: new GraphQLNonNull(GraphQLString)
+        }
+    })
+})
+
 export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
     name: "DocumentControl",
     description: "Document Control Logs",
@@ -176,6 +190,9 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
         },
         active: {
             type: new GraphQLNonNull(GraphQLBoolean)
+        },
+        purposeNotes: {
+            type: GraphQLString
         },
         dateCreated: {
             type: new GraphQLNonNull(GraphQLString),
@@ -225,6 +242,18 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
                 })
             }
         },
+        recipientUser: {
+            type: UserAccountObject,
+            resolve: async (parent) => {
+                if (parent.recipientUserId) return await dbClient.userAccounts.findUnique({
+                    where: {
+                        accountId: parent.recipientUserId
+                    }
+                })
+
+                return null;
+            }
+        },
         docType: {
             type: DocumentTypeObject,
             resolve: async (parent) => {
@@ -269,6 +298,18 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
                         dateCreated: 'asc'
                     }
                 })
+            }
+        },
+        threadTag: {
+            type: ThreadTagObject,
+            resolve: async (parent) => {
+                if (parent.tagId) return await dbClient.threadTags.findUnique({
+                    where: {
+                        tagId: parent.tagId
+                    }
+                })
+
+                return null;
             }
         }
     })

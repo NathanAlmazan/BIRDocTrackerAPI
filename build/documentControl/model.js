@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.ThreadHistoryObject = exports.DocumentPurposeObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
+exports.AnalyticsObject = exports.DocumentFilesObject = exports.MessagesObject = exports.ThreadObject = exports.ThreadTagObject = exports.ThreadHistoryObject = exports.DocumentPurposeObject = exports.DocumentTypeObject = exports.DocumentStatusObject = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const model_1 = require("../offices/model");
@@ -137,6 +137,17 @@ exports.ThreadHistoryObject = new graphql_1.GraphQLObjectType({
         }
     })
 });
+exports.ThreadTagObject = new graphql_1.GraphQLObjectType({
+    name: "ThreadTags",
+    fields: () => ({
+        tagId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        tagName: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        }
+    })
+});
 exports.ThreadObject = new graphql_1.GraphQLObjectType({
     name: "DocumentControl",
     description: "Document Control Logs",
@@ -164,6 +175,9 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
         },
         active: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLBoolean)
+        },
+        purposeNotes: {
+            type: graphql_1.GraphQLString
         },
         dateCreated: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
@@ -213,6 +227,18 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
                 });
             })
         },
+        recipientUser: {
+            type: model_1.UserAccountObject,
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                if (parent.recipientUserId)
+                    return yield database_1.default.userAccounts.findUnique({
+                        where: {
+                            accountId: parent.recipientUserId
+                        }
+                    });
+                return null;
+            })
+        },
         docType: {
             type: exports.DocumentTypeObject,
             resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
@@ -257,6 +283,18 @@ exports.ThreadObject = new graphql_1.GraphQLObjectType({
                         dateCreated: 'asc'
                     }
                 });
+            })
+        },
+        threadTag: {
+            type: exports.ThreadTagObject,
+            resolve: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+                if (parent.tagId)
+                    return yield database_1.default.threadTags.findUnique({
+                        where: {
+                            tagId: parent.tagId
+                        }
+                    });
+                return null;
             })
         }
     })

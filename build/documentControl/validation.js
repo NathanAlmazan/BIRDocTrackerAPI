@@ -31,6 +31,15 @@ exports.ThreadCreateInput = new graphql_1.GraphQLInputObjectType({
         },
         dateDue: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+        },
+        tagId: {
+            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+        },
+        recipientUserId: {
+            type: graphql_1.GraphQLString
+        },
+        purposeNotes: {
+            type: graphql_1.GraphQLString
         }
     })
 });
