@@ -79,7 +79,9 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
             },
-            recipientId: args.data.recipientId
+            recipientId: {
+                in: args.data.recipientId
+            }
         },
         _count: {
             refId: true
@@ -100,69 +102,82 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     })
 
     // get the recipient office section when set to broadcast
-    let recipientId = args.data.recipientId;
-    let broadcast = false;
-    if (recipientId < 0) {
-        const section = await dbClient.officeSections.findFirst({
+    const threads = []
+    for (let i = 0; i < args.data.recipientId.length; i++) {
+        let recipientId = args.data.recipientId[i];
+
+        let broadcast = false;
+        if (recipientId < 0) {
+            const section = await dbClient.officeSections.findFirst({
+                where: {
+                    officeId: Math.abs(recipientId),
+                    sectionName: 'default'
+                }
+            })
+
+            if (!section) throw new GraphQLError('Thread recipient does not exist', {
+                extensions: {
+                    code: 'BAD_REQUEST'
+                }
+            })
+
+            recipientId = section.sectionId;
+            broadcast = true;
+        }
+
+        // get the recipient details for reference number
+        const recipient = await dbClient.officeSections.findUnique({
             where: {
-                officeId: Math.abs(recipientId),
-                sectionName: 'default'
+                sectionId: recipientId
+            },
+            select: {
+                office: {
+                    select: {
+                        refNum: true
+                    }
+                },
+                refNum: true
             }
         })
 
-        if (!section) throw new GraphQLError('Thread recipient does not exist', {
+        if (!recipient) throw new GraphQLError('Recipient does not exist', {
             extensions: {
                 code: 'BAD_REQUEST'
             }
         })
 
-        recipientId = section.sectionId;
-        broadcast = true;
-    }
+        // get initial status based on purpose
+        let status = 2;
+        let sectionRef = '';
+        if (purpose.initStatusId) status = purpose.initStatusId;
+        if (recipient.refNum) sectionRef = `${recipient.refNum}-`
 
-    // get the recipient details for reference number
-    const recipient = await dbClient.officeSections.findUnique({
-        where: {
-            sectionId: recipientId
-        },
-        select: {
-            office: {
-                select: {
-                    refNum: true
-                }
-            },
-            refNum: true
-        }
-    })
-
-    if (!recipient) throw new GraphQLError('Recipient does not exist', {
-        extensions: {
-            code: 'BAD_REQUEST'
-        }
-    })
-
-    // get initial status based on purpose
-    let status = 2;
-    let sectionRef = '';
-    if (purpose.initStatusId) status = purpose.initStatusId;
-    if (recipient.refNum) sectionRef = `${recipient.refNum}-`
-
-    return await dbClient.thread.create({
-        data: {
-            ...args.data,
-            refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
-            statusId: status,
-            completed: !purpose.actionable,
-            recipientId: recipientId,
-            broadcast: broadcast,
-            history: {
-                create: {
-                    historyLabel: 'Request Created',
-                    statusId: status
+        const thread = await dbClient.thread.create({
+            data: {
+                subject: args.data.subject,
+                authorId: args.data.authorId,
+                docTypeId: args.data.docTypeId,
+                purposeId: args.data.purposeId,
+                attachments: args.data.attachments,
+                dateDue: args.data.dateDue,
+                refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+                statusId: status,
+                completed: !purpose.actionable,
+                recipientId: recipientId,
+                broadcast: broadcast,
+                history: {
+                    create: {
+                        historyLabel: 'Request Created',
+                        statusId: status
+                    }
                 }
             }
-        }
-    })
+        })
+
+        threads.push(thread); // collect created threads
+    }
+
+    return threads;
 }
 
 export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {

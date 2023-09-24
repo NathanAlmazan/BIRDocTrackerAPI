@@ -102,7 +102,7 @@ export const mutationFields = {
 
     // ====================== Fields for Thread and Messages ======================== //
     createThread: {
-        type: ThreadObject,
+        type: new GraphQLList(ThreadObject),
         args: {
             data: {
                 type: new GraphQLNonNull(ThreadCreateInput)

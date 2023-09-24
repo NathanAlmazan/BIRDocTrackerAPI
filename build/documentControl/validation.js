@@ -15,7 +15,7 @@ exports.ThreadCreateInput = new graphql_1.GraphQLInputObjectType({
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
         },
         recipientId: {
-            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)
+            type: new graphql_1.GraphQLList(graphql_1.GraphQLInt)
         },
         docTypeId: {
             type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLInt)

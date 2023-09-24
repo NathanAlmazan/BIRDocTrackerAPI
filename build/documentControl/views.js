@@ -59,7 +59,7 @@ exports.mutationFields = {
     },
     // ====================== Fields for Thread and Messages ======================== //
     createThread: {
-        type: model_1.ThreadObject,
+        type: new graphql_1.GraphQLList(model_1.ThreadObject),
         args: {
             data: {
                 type: new graphql_1.GraphQLNonNull(validation_1.ThreadCreateInput)
