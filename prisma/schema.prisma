@@ -68,7 +68,7 @@ model UserAccounts {
   resetCode       String?     @db.VarChar(6)
   active          Boolean     @default(true)
   subscription    String?
-  office          OfficeSections   @relation(fields: [officeId], references: [sectionId])
+  section         OfficeSections   @relation(fields: [officeId], references: [sectionId])
   role            Roles            @relation(fields: [roleId], references: [roleId])
   threads         Thread[]
   messages        Messages[]

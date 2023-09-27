@@ -81,16 +81,48 @@ export const resolveGetAllTags = async () => {
 // =========================================== Thread and Messages Controller ============================================= //
 
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
-    const current = new Date();
+    // get the author details for reference number
+    const author = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: args.data.authorId
+        },
+        select: {
+            section: {
+                select: {
+                    refNum: true,
+                    office: {
+                        select: {
+                            officeId: true,
+                            refNum: true
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    if (!author) throw new GraphQLError('Author does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const authorOfficeId = author.section.office.officeId;
+    const officeRef = author.section.office.refNum;
+    const sectionRef = author.section.refNum ? author.section.refNum : '';
+
 
     // get the total document this month to generate the reference number
+    const current = new Date();
     const threadCount = await dbClient.thread.aggregate({
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
             },
-            recipientId: {
-                in: args.data.recipientId
+            author: {
+                section: {
+                    officeId: authorOfficeId
+                }
             }
         },
         _count: {
@@ -130,8 +162,9 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     // get the recipient office section when set to broadcast
     const threads = []
     for (let i = 0; i < args.data.recipientId.length; i++) {
-        let recipientId = args.data.recipientId[i];
 
+        // identify recipient
+        let recipientId = args.data.recipientId[i];
         let broadcast = false;
         if (recipientId < 0) {
             const section = await dbClient.officeSections.findFirst({
@@ -151,32 +184,9 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
             broadcast = true;
         }
 
-        // get the recipient details for reference number
-        const recipient = await dbClient.officeSections.findUnique({
-            where: {
-                sectionId: recipientId
-            },
-            select: {
-                office: {
-                    select: {
-                        refNum: true
-                    }
-                },
-                refNum: true
-            }
-        })
-
-        if (!recipient) throw new GraphQLError('Recipient does not exist', {
-            extensions: {
-                code: 'BAD_REQUEST'
-            }
-        })
-
         // get initial status based on purpose
         let status = 2;
-        let sectionRef = '';
         if (purpose.initStatusId) status = purpose.initStatusId;
-        if (recipient.refNum) sectionRef = `${recipient.refNum}-`
 
         const thread = await dbClient.thread.create({
             data: {
@@ -188,7 +198,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 purposeNotes: args.data.purposeNotes,
                 tagId: args.data.tagId,
                 dateDue: args.data.dateDue,
-                refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+                refSlipNum: `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
                 statusId: status,
                 completed: !purpose.actionable,
                 recipientId: recipientId,
@@ -431,7 +441,7 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         select: {
             accountId: true,
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -450,7 +460,7 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {
@@ -515,7 +525,7 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
         select: {
             accountId: true,
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -534,7 +544,7 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {
@@ -939,7 +949,7 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
         },
         select: {
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -982,7 +992,7 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {

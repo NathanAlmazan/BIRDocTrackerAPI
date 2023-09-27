@@ -88,15 +88,45 @@ exports.resolveGetAllTags = resolveGetAllTags;
 // =========================================== Thread and Messages Controller ============================================= //
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const current = new Date();
+    // get the author details for reference number
+    const author = yield database_1.default.userAccounts.findUnique({
+        where: {
+            accountId: args.data.authorId
+        },
+        select: {
+            section: {
+                select: {
+                    refNum: true,
+                    office: {
+                        select: {
+                            officeId: true,
+                            refNum: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+    if (!author)
+        throw new graphql_1.GraphQLError('Author does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    const authorOfficeId = author.section.office.officeId;
+    const officeRef = author.section.office.refNum;
+    const sectionRef = author.section.refNum ? author.section.refNum : '';
     // get the total document this month to generate the reference number
+    const current = new Date();
     const threadCount = yield database_1.default.thread.aggregate({
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
             },
-            recipientId: {
-                in: args.data.recipientId
+            author: {
+                section: {
+                    officeId: authorOfficeId
+                }
             }
         },
         _count: {
@@ -133,6 +163,7 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
     // get the recipient office section when set to broadcast
     const threads = [];
     for (let i = 0; i < args.data.recipientId.length; i++) {
+        // identify recipient
         let recipientId = args.data.recipientId[i];
         let broadcast = false;
         if (recipientId < 0) {
@@ -151,33 +182,10 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
             recipientId = section.sectionId;
             broadcast = true;
         }
-        // get the recipient details for reference number
-        const recipient = yield database_1.default.officeSections.findUnique({
-            where: {
-                sectionId: recipientId
-            },
-            select: {
-                office: {
-                    select: {
-                        refNum: true
-                    }
-                },
-                refNum: true
-            }
-        });
-        if (!recipient)
-            throw new graphql_1.GraphQLError('Recipient does not exist', {
-                extensions: {
-                    code: 'BAD_REQUEST'
-                }
-            });
         // get initial status based on purpose
         let status = 2;
-        let sectionRef = '';
         if (purpose.initStatusId)
             status = purpose.initStatusId;
-        if (recipient.refNum)
-            sectionRef = `${recipient.refNum}-`;
         const thread = yield database_1.default.thread.create({
             data: {
                 subject: args.data.subject,
@@ -188,7 +196,7 @@ const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, funct
                 purposeNotes: args.data.purposeNotes,
                 tagId: args.data.tagId,
                 dateDue: args.data.dateDue,
-                refSlipNum: `${recipient.office.refNum}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+                refSlipNum: `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
                 statusId: status,
                 completed: !purpose.actionable,
                 recipientId: recipientId,
@@ -421,7 +429,7 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
         select: {
             accountId: true,
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -439,7 +447,7 @@ const resolveGetInboxThread = (_, args) => __awaiter(void 0, void 0, void 0, fun
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {
@@ -500,7 +508,7 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
         select: {
             accountId: true,
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -518,7 +526,7 @@ const resolveGetNotifications = (_, args) => __awaiter(void 0, void 0, void 0, f
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {
@@ -905,7 +913,7 @@ const resolveGetThreadSummary = (_, args) => __awaiter(void 0, void 0, void 0, f
         },
         select: {
             officeId: true,
-            office: {
+            section: {
                 select: {
                     officeId: true
                 }
@@ -946,7 +954,7 @@ const resolveGetThreadSummary = (_, args) => __awaiter(void 0, void 0, void 0, f
         where: {
             AND: {
                 sectionName: "default",
-                officeId: user.office.officeId
+                officeId: user.section.officeId
             }
         },
         select: {
