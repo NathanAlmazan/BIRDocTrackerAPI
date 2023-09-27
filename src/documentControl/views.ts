@@ -23,6 +23,7 @@ import {
     resolveCreateThread, 
     resolveDeleteThreadStatus, 
     resolveDeleteThreadType, 
+    resolveGenerateTempRefNum, 
     resolveGetAllInbox, 
     resolveGetAllTags, 
     resolveGetAllThreadPurpose, 
@@ -198,6 +199,15 @@ export const queryFields = {
             }
         },
         resolve: resolveGetThreadById
+    },
+    getThreadRefNum: {
+        type: new GraphQLNonNull(GraphQLString),
+        args: {
+            authorId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveGenerateTempRefNum
     },
     getThreadInbox: {
         type: new GraphQLList(ThreadObject),

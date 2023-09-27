@@ -152,6 +152,15 @@ exports.queryFields = {
         },
         resolve: controller_1.resolveGetThreadById
     },
+    getThreadRefNum: {
+        type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+        args: {
+            authorId: {
+                type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString)
+            }
+        },
+        resolve: controller_1.resolveGenerateTempRefNum
+    },
     getThreadInbox: {
         type: new graphql_1.GraphQLList(model_1.ThreadObject),
         args: {

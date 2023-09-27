@@ -80,6 +80,59 @@ export const resolveGetAllTags = async () => {
 
 // =========================================== Thread and Messages Controller ============================================= //
 
+export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string }) => {
+    // get the author details for reference number
+    const author = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: args.authorId
+        },
+        select: {
+            section: {
+                select: {
+                    refNum: true,
+                    office: {
+                        select: {
+                            officeId: true,
+                            refNum: true
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    if (!author) throw new GraphQLError('Author does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const authorOfficeId = author.section.office.officeId;
+    const officeRef = author.section.office.refNum;
+    const sectionRef = author.section.refNum ? author.section.refNum : '';
+
+
+    // get the total document this month to generate the reference number
+    const current = new Date();
+    const threadCount = await dbClient.thread.aggregate({
+        where: {
+            dateCreated: {
+                gte: new Date(current.getFullYear(), current.getMonth(), 1)
+            },
+            author: {
+                section: {
+                    officeId: authorOfficeId
+                }
+            }
+        },
+        _count: {
+            refId: true
+        }
+    });
+
+    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`;
+}
+
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     // get the author details for reference number
     const author = await dbClient.userAccounts.findUnique({

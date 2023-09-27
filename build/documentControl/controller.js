@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveGetThreadSummary = exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGetAllTags = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
+exports.resolveGetThreadSummary = exports.resolveThreadPurposeAnalytics = exports.resolveThreadTypeAnalytics = exports.resolveStatusAnalytics = exports.resolveSetMessageAsRead = exports.resolveGetAllInbox = exports.resolveGetNotifications = exports.resolveGetInboxThread = exports.resolveGetCreatedThread = exports.resolveUpdateThreadStatus = exports.resolveGetThreadById = exports.resolveCreateMessage = exports.resolveRestoreThread = exports.resolveArchiveThread = exports.resolveCreateThread = exports.resolveGenerateTempRefNum = exports.resolveGetAllTags = exports.resolveGetAllThreadPurpose = exports.resolveAddThreadPurpose = exports.resolveDeleteThreadType = exports.resolveGetAllThreadTypes = exports.resolveAddThreadType = exports.resolveDeleteThreadStatus = exports.resolveGetAllThreadStatus = exports.resolveAddThreadStatus = void 0;
 const graphql_1 = require("graphql");
 const database_1 = __importDefault(require("../database"));
 const web_push_1 = __importDefault(require("web-push"));
@@ -86,6 +86,55 @@ const resolveGetAllTags = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.resolveGetAllTags = resolveGetAllTags;
 // =========================================== Thread and Messages Controller ============================================= //
+const resolveGenerateTempRefNum = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
+    // get the author details for reference number
+    const author = yield database_1.default.userAccounts.findUnique({
+        where: {
+            accountId: args.authorId
+        },
+        select: {
+            section: {
+                select: {
+                    refNum: true,
+                    office: {
+                        select: {
+                            officeId: true,
+                            refNum: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+    if (!author)
+        throw new graphql_1.GraphQLError('Author does not exist', {
+            extensions: {
+                code: 'BAD_REQUEST'
+            }
+        });
+    const authorOfficeId = author.section.office.officeId;
+    const officeRef = author.section.office.refNum;
+    const sectionRef = author.section.refNum ? author.section.refNum : '';
+    // get the total document this month to generate the reference number
+    const current = new Date();
+    const threadCount = yield database_1.default.thread.aggregate({
+        where: {
+            dateCreated: {
+                gte: new Date(current.getFullYear(), current.getMonth(), 1)
+            },
+            author: {
+                section: {
+                    officeId: authorOfficeId
+                }
+            }
+        },
+        _count: {
+            refId: true
+        }
+    });
+    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`;
+});
+exports.resolveGenerateTempRefNum = resolveGenerateTempRefNum;
 const resolveCreateThread = (_, args) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     // get the author details for reference number
