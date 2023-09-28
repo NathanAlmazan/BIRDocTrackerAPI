@@ -160,7 +160,7 @@ app.post('/subscribe/:uid', (req, res) => __awaiter(void 0, void 0, void 0, func
         message: 'User Subscribed.'
     });
 }));
-const PORT = 8080;
+const PORT = 8080 || process.env.PORT;
 // Now that our HTTP server is fully set up, we can listen to it.
 httpServer.listen(PORT, () => {
     console.log(`Server is now running on http://localhost:${PORT}/graphql`);
