@@ -39,11 +39,13 @@ import {
     resolveStatusAnalytics, 
     resolveThreadPurposeAnalytics, 
     resolveThreadTypeAnalytics, 
+    resolveUpdateThread, 
     resolveUpdateThreadStatus 
 } from "./controller";
 import { 
     MessageCreateInput, 
-    ThreadCreateInput 
+    ThreadCreateInput, 
+    ThreadUpdateInput
 } from "./validation";
 
 
@@ -112,6 +114,15 @@ export const mutationFields = {
             }
         },
         resolve: resolveCreateThread
+    },
+    updateThread: {
+        type: ThreadObject,
+        args: {
+            data: {
+                type: ThreadUpdateInput
+            }
+        },
+        resolve: resolveUpdateThread
     },
     archiveThread: {
         type: ThreadObject,

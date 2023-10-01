@@ -1,6 +1,10 @@
 import { GraphQLError } from "graphql"
 import dbClient from "../database"
-import { MessageCreateInput, ThreadCreateInput } from "./validation"
+import { 
+    MessageCreateInput, 
+    ThreadCreateInput, 
+    ThreadUpdateInput 
+} from "./validation"
 import webpush from 'web-push';
 
 
@@ -272,6 +276,17 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     }
 
     return threads;
+}
+
+export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
+    return await dbClient.thread.update({
+        where: {
+            refId: args.data.threadId
+        },
+        data: {
+            ...args.data
+        }
+    })
 }
 
 export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {

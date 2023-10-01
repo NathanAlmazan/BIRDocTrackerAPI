@@ -70,6 +70,42 @@ export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObject
     })
 })
 
+export interface ThreadUpdateInput {
+    data: {
+        threadId: string;
+        subject: string;
+        docTypeId: number;
+        dateDue: Date;
+        purposeId: number;
+        tagId: number | null;
+        purposeNotes: string | null;
+    }
+}
+
+export const ThreadUpdateInput: GraphQLInputObjectType  = new GraphQLInputObjectType({
+    name: "ThreadInput",
+    fields: () => ({
+        subject: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        docTypeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        purposeId: {
+            type: new GraphQLNonNull(GraphQLInt)
+        },
+        dateDue: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        tagId: {
+            type: GraphQLInt
+        },
+        purposeNotes: {
+            type: GraphQLString
+        }
+    })
+})
+
 export interface MessageCreateInput {
     data: {
         message: string;
