@@ -279,9 +279,9 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
 }
 
 export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
-    return await dbClient.thread.update({
+    return await dbClient.thread.updateMany({
         where: {
-            refId: args.data.threadId
+            refSlipNum: args.data.refNum
         },
         data: {
             subject: args.data.subject,

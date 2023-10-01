@@ -72,7 +72,7 @@ export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObject
 
 export interface ThreadUpdateInput {
     data: {
-        threadId: string;
+        refNum: string;
         subject: string;
         docTypeId: number;
         dateDue: Date;
@@ -85,7 +85,7 @@ export interface ThreadUpdateInput {
 export const ThreadUpdateInput: GraphQLInputObjectType  = new GraphQLInputObjectType({
     name: "ThreadUpdateInput",
     fields: () => ({
-        threadId: {
+        refNum: {
             type: new GraphQLNonNull(GraphQLString)
         },
         subject: {
