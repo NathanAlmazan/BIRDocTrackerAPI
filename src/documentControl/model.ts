@@ -18,6 +18,7 @@ import {
 } from "graphql"
 import dbClient from "../database"
 import { 
+    BirOfficeObject,
     OfficeSectionObject, 
     UserAccountObject 
 } from "../offices/model"
@@ -243,26 +244,22 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
             }
         },
         recipientList: {
-            type: new GraphQLList(UserAccountObject),
+            type: new GraphQLList(BirOfficeObject),
             resolve: async (parent) => {
-                const relatedThreads = await dbClient.thread.findMany({
+                const related = await dbClient.thread.findMany({
                     where: {
                         refSlipNum: parent.refSlipNum
                     },
                     select: {
-                        authorId: true
-                    }
-                })
-
-                const authorIds = relatedThreads.map(thread => thread.authorId);
-
-                return await dbClient.userAccounts.findMany({
-                    where: {
-                        accountId: {
-                            in: authorIds
+                        recipient: {
+                            select: {
+                                office: true
+                            }
                         }
                     }
                 })
+
+                return related.map(thread => thread.recipient.office);
             }
         },
         recipientUser: {
