@@ -183,6 +183,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     });
 
+    const refNum = `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`; 
+
     // get the document purpose details to initialize status
     const purpose = await dbClient.documentPurpose.findUnique({
         where: {
@@ -251,7 +253,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 purposeNotes: args.data.purposeNotes,
                 tagId: args.data.tagId,
                 dateDue: args.data.dateDue,
-                refSlipNum: `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`,
+                refSlipNum: refNum,
                 statusId: status,
                 completed: !purpose.actionable,
                 recipientId: recipientId,
