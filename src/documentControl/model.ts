@@ -244,22 +244,18 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
             }
         },
         recipientList: {
-            type: new GraphQLList(BirOfficeObject),
+            type: new GraphQLList(OfficeSectionObject),
             resolve: async (parent) => {
                 const related = await dbClient.thread.findMany({
                     where: {
                         refSlipNum: parent.refSlipNum
                     },
                     select: {
-                        recipient: {
-                            select: {
-                                office: true
-                            }
-                        }
+                        recipient: true
                     }
                 })
 
-                return related.map(thread => thread.recipient.office);
+                return related.map(thread => thread.recipient);
             }
         },
         recipientUser: {
