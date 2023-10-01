@@ -284,7 +284,12 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
             refId: args.data.threadId
         },
         data: {
-            ...args.data
+            subject: args.data.subject,
+            dateDue: args.data.dateDue,
+            tagId: args.data.tagId,
+            purposeNotes: args.data.purposeNotes,
+            docTypeId: args.data.docTypeId,
+            purposeId: args.data.purposeId
         }
     })
 }
