@@ -116,7 +116,7 @@ export const mutationFields = {
         resolve: resolveCreateThread
     },
     updateThread: {
-        type: ThreadObject,
+        type: new GraphQLList(ThreadObject),
         args: {
             data: {
                 type: ThreadUpdateInput
