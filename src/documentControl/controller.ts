@@ -279,7 +279,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
 }
 
 export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
-    return await dbClient.thread.updateMany({
+    await dbClient.thread.updateMany({
         where: {
             refSlipNum: args.data.refNum
         },
@@ -292,6 +292,12 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
             purposeId: args.data.purposeId
         }
     })
+
+    return dbClient.thread.findMany({
+        where: {
+            refSlipNum: args.data.refNum
+        }
+    });
 }
 
 export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {
