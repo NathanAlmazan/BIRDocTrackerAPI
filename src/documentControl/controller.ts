@@ -118,7 +118,8 @@ export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string
 
     // get the total document this month to generate the reference number
     const current = new Date();
-    const threadCount = await dbClient.thread.aggregate({
+    const threadCount = await dbClient.thread.groupBy({
+        by: ['refSlipNum'],
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
@@ -128,13 +129,10 @@ export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string
                     officeId: authorOfficeId
                 }
             }
-        },
-        _count: {
-            refId: true
         }
     });
 
-    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`;
+    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount.length).padStart(5, '0')}`;
 }
 
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
@@ -171,7 +169,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
 
     // get the total document this month to generate the reference number
     const current = new Date();
-    const threadCount = await dbClient.thread.aggregate({
+    const threadCount = await dbClient.thread.groupBy({
+        by: ['refSlipNum'],
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
@@ -181,13 +180,10 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                     officeId: authorOfficeId
                 }
             }
-        },
-        _count: {
-            refId: true
         }
     });
 
-    const refNum = `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount._count.refId).padStart(5, '0')}`; 
+    const refNum = `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount.length).padStart(5, '0')}`; 
 
     // get the document purpose details to initialize status
     const purpose = await dbClient.documentPurpose.findUnique({
