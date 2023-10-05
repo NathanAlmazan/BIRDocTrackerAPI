@@ -501,7 +501,7 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
         case 'pending':
             return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);   
         case 'memos':
-            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+            return inboxes.filter(thread => !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
         default:
@@ -583,7 +583,7 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         case 'pending':
             return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);    
         case 'memos':
-            return inboxes.filter(thread => thread.completed && !thread.purpose.actionable);
+            return inboxes.filter(thread => !thread.purpose.actionable);
         case "finished":
             return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
         default:
@@ -734,7 +734,6 @@ export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
     });
     else return await dbClient.thread.findMany({
         where: {
-            completed: true,
             purpose: {
                 actionable: false
             }
