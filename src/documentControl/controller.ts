@@ -132,7 +132,7 @@ export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string
         }
     });
 
-    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount.length).padStart(5, '0')}`;
+    return `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String((threadCount.length + 1)).padStart(5, '0')}`;
 }
 
 export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
@@ -183,7 +183,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     });
 
-    const refNum = `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String(threadCount.length).padStart(5, '0')}`; 
+    const refNum = `${officeRef}-${sectionRef}${current.toISOString().split('-').slice(0, 2).join('-')}-${String((threadCount.length + 1)).padStart(5, '0')}`; 
 
     // get the document purpose details to initialize status
     const purpose = await dbClient.documentPurpose.findUnique({
@@ -489,7 +489,7 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
             active: args.type === "archived" ? false : true
         },
         orderBy: {
-            dateDue: 'desc'
+            refSlipNum: 'asc'
         },
         include: {
             status: true,
@@ -729,7 +729,7 @@ export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
             }
         },
         orderBy: {
-            dateDue: 'desc'
+            refSlipNum: 'asc'
         }
     });
     else return await dbClient.thread.findMany({
@@ -739,7 +739,7 @@ export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
             }
         },
         orderBy: {
-            dateDue: 'desc'
+            refSlipNum: 'asc'
         }
     })
 }
