@@ -41,7 +41,11 @@ export const resolveUpdateOffice = async (_: any, args: { officeId: number, offi
 }
 
 export const resolveGetAllOffices = async () => {
-    return await dbClient.birOffices.findMany()
+    return await dbClient.birOffices.findMany({
+        orderBy: {
+            officeId: 'asc'
+        }
+    })
 }
 
 
