@@ -200,7 +200,8 @@ export const resolveGetAccountsByOffice = async (_: any, args: { officeIds: numb
         where: {
             officeId: {
                 in: args.officeIds
-            }
+            },
+            active: true
         }
     })
 }
