@@ -110,7 +110,6 @@ export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string
         }
     })
 
-    const authorOfficeId = author.section.office.officeId;
     const officeRef = author.section.office.refNum;
     const sectionRef = author.section.refNum ? author.section.refNum : '';
 
@@ -122,11 +121,6 @@ export const resolveGenerateTempRefNum = async (_: any, args: { authorId: string
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
-            },
-            author: {
-                section: {
-                    officeId: authorOfficeId
-                }
             }
         }
     });
@@ -161,7 +155,6 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     })
 
-    const authorOfficeId = author.section.office.officeId;
     const officeRef = author.section.office.refNum;
     const sectionRef = author.section.refNum ? author.section.refNum : '';
 
@@ -173,11 +166,6 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         where: {
             dateCreated: {
                 gte: new Date(current.getFullYear(), current.getMonth(), 1)
-            },
-            author: {
-                section: {
-                    officeId: authorOfficeId
-                }
             }
         }
     });
