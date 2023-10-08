@@ -1050,18 +1050,35 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
     endDate.setMonth(endDate.getMonth() + 1);
 
     // if admin return all
-    if(user.role.superuser) return await dbClient.thread.findMany({
-        where: {
-            dateCreated: {
-                gte: startDate.toISOString(),
-                lte: endDate.toISOString()
+    if (user.role.superuser) {
+        const threads = await dbClient.thread.groupBy({
+            by: ['refSlipNum'],
+            where: {
+                dateCreated: {
+                    gte: startDate.toISOString(),
+                    lte: endDate.toISOString()
+                },
+                active: true
             },
-            active: true
-        },
-        orderBy: {
-            dateDue: 'desc'
-        }
-    })
+            _min: {
+                dateCreated: true
+            }
+        })
+
+        return await dbClient.thread.findMany({
+            where: {
+                refSlipNum: {
+                    in: threads.map(thread => thread.refSlipNum)
+                },
+                dateCreated: {
+                    in: threads.filter(thread => thread._min.dateCreated !== null).map(thread => thread._min.dateCreated as Date)
+                }
+            },
+            orderBy: {
+                dateCreated: 'asc'
+            }
+        })
+    }
 
     // fetch office default
     const defaultOffice = await dbClient.officeSections.findFirst({
@@ -1083,7 +1100,8 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
     })
 
     // fetch all inboxes
-    return await dbClient.thread.findMany({
+    const threads = await dbClient.thread.groupBy({
+        by: ['refSlipNum'],
         where: {
             OR: [
                 {
@@ -1100,8 +1118,22 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
             },
             active: true
         },
+        _min: {
+            dateCreated: true
+        }
+    })
+
+    return await dbClient.thread.findMany({
+        where: {
+            refSlipNum: {
+                in: threads.map(thread => thread.refSlipNum)
+            },
+            dateCreated: {
+                in: threads.filter(thread => thread._min.dateCreated !== null).map(thread => thread._min.dateCreated as Date)
+            }
+        },
         orderBy: {
-            dateDue: 'desc'
+            dateCreated: 'asc'
         }
     })
 }

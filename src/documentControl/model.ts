@@ -252,10 +252,31 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
                     },
                     select: {
                         recipient: true
+                    },
+                    orderBy: {
+                        recipientId: 'asc'
                     }
                 })
 
                 return related.map(thread => thread.recipient);
+            }
+        },
+        statusList: {
+            type: new GraphQLList(DocumentStatusObject),
+            resolve: async (parent) => {
+                const related = await dbClient.thread.findMany({
+                    where: {
+                        refSlipNum: parent.refSlipNum
+                    },
+                    select: {
+                        status: true
+                    },
+                    orderBy: {
+                        recipientId: 'asc'
+                    }
+                })
+
+                return related.map(thread => thread.status);
             }
         },
         recipientUser: {
