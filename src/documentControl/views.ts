@@ -96,9 +96,6 @@ export const mutationFields = {
         args: {
             name: {
                 type: new GraphQLNonNull(GraphQLString)
-            },
-            actionable: {
-                type: GraphQLBoolean
             }
         },
         resolve: resolveAddThreadPurpose

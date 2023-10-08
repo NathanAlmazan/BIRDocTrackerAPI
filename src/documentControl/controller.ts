@@ -55,11 +55,10 @@ export const resolveDeleteThreadType = async (_: any, args: { id: number }) => {
 
 // ============================================= Thread Purpose Controller ================================================ //
 
-export const resolveAddThreadPurpose = async (_: any, args: { name: string, actionable?: boolean }) => {
+export const resolveAddThreadPurpose = async (_: any, args: { name: string }) => {
     return await dbClient.documentPurpose.create({
         data: {
-            purposeName: args.name,
-            actionable: args.actionable
+            purposeName: args.name
         }
     })
 }
@@ -192,7 +191,19 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         }
     })
 
+    const type = await dbClient.documentTypes.findUnique({
+        where: {
+            docId: args.data.docTypeId
+        }
+    })
+
     if (!purpose) throw new GraphQLError('Document purpose does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    if (!type) throw new GraphQLError('Document type does not exist', {
         extensions: {
             code: 'BAD_REQUEST'
         }
@@ -255,7 +266,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 dateDue: args.data.dateDue,
                 refSlipNum: refNum,
                 statusId: status,
-                completed: !purpose.actionable,
+                completed: !type.actionable,
                 recipientId: recipientId,
                 recipientUserId: officers.find(officer => officer.officeId === recipientId)?.accountId,
                 broadcast: broadcast,
@@ -493,17 +504,17 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
         },
         include: {
             status: true,
-            purpose: true
+            docType: true
         }
     })
 
     switch (args.type) {
         case 'pending':
-            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);   
+            return inboxes.filter(thread => !thread.completed && thread.docType.actionable);   
         case 'memos':
-            return inboxes.filter(thread => !thread.purpose.actionable);
+            return inboxes.filter(thread => !thread.docType.actionable);
         case "finished":
-            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+            return inboxes.filter(thread => thread.completed && thread.docType.actionable);
         default:
             return inboxes;
     }
@@ -575,17 +586,17 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         },
         include: {
             status: true,
-            purpose: true
+            docType: true
         }
     })
 
     switch (args.type) {
         case 'pending':
-            return inboxes.filter(thread => !thread.completed && thread.purpose.actionable);    
+            return inboxes.filter(thread => !thread.completed && thread.docType.actionable);    
         case 'memos':
-            return inboxes.filter(thread => !thread.purpose.actionable);
+            return inboxes.filter(thread => !thread.docType.actionable);
         case "finished":
-            return inboxes.filter(thread => thread.completed && thread.purpose.actionable);
+            return inboxes.filter(thread => thread.completed && thread.docType.actionable);
         default:
             return inboxes;
     }
@@ -723,23 +734,22 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
 export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
     if (!args.memos) return await dbClient.thread.findMany({
         where: {
-            completed: false,
-            purpose: {
+            docType: {
                 actionable: true
             }
         },
         orderBy: {
-            refSlipNum: 'asc'
+            dateCreated: 'asc'
         }
     });
     else return await dbClient.thread.findMany({
         where: {
-            purpose: {
+            docType: {
                 actionable: false
             }
         },
         orderBy: {
-            refSlipNum: 'asc'
+            dateCreated: 'asc'
         }
     })
 }

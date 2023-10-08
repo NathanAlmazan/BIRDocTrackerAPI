@@ -30,6 +30,7 @@ model OfficeSections {
 model DocumentTypes {
   docId           Int         @id @default(autoincrement())
   docType         String      @db.VarChar(100)
+  actionable      Boolean     @default(true)
   threads         Thread[]
 }
 
@@ -44,7 +45,6 @@ model DocumentStatus {
 model DocumentPurpose {
   purposeId       Int         @id @default(autoincrement())
   purposeName     String      @db.VarChar(50)
-  actionable      Boolean     @default(true)
   initStatusId    Int?
   initStatus      DocumentStatus?  @relation(fields: [initStatusId], references: [statusId], onDelete: SetNull)
   threads         Thread[]
