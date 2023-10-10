@@ -266,13 +266,25 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                         statusId: status
                     }
                 }
+            },
+            include: {
+                recipient: {
+                    select: {
+                        officeId: true
+                    }
+                }
             }
         })
 
+        // trigger subscription event
+        pubsub.publish(`${thread.recipient.officeId}_OFFICE_INBOX`, { officeInbox: {
+            referenceNum: refNum,
+            eventType: "THREAD_CREATED",
+            timestamp: new Date().toISOString()
+        }})
+
         threads.push(thread); // collect created threads
     }
-
-    await triggerSubscriptionEvent(refNum); // trigger subscription event
 
     return threads;
 }
@@ -292,7 +304,34 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
         }
     });
 
-    await triggerSubscriptionEvent(args.data.refNum); // trigger subscription event
+    const threads = await dbClient.thread.findMany({
+        where: {
+            refSlipNum: args.data.refNum
+        },
+        select: {
+            refId: true,
+            recipient: {
+                select: {
+                    officeId: true
+                }
+            }
+        }
+    })
+
+    // trigger subscription event
+    threads.forEach(thread => {
+        pubsub.publish(`${thread.recipient.officeId}_OFFICE_INBOX`, { officeInbox: {
+            referenceNum: args.data.refNum,
+            eventType: "THREAD_UPDATED",
+            timestamp: new Date().toISOString()
+        }})
+
+        pubsub.publish(`THREAD_${thread.refId}`, { liveThread: {
+            referenceNum: thread.refId,
+            eventType: "MESSAGE_SENT",
+            timestamp: new Date().toISOString()
+        }})
+    })
 
     return dbClient.thread.findMany({
         where: {
@@ -301,10 +340,13 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
     });
 }
 
-const triggerSubscriptionEvent = async (reference: string) => {
-    const requests = await dbClient.thread.findMany({
+export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {
+    const thread = await dbClient.thread.update({
         where: {
-            refSlipNum: reference
+            refId: args.threadId
+        },
+        data: {
+            active: false
         },
         include: {
             recipient: {
@@ -315,48 +357,53 @@ const triggerSubscriptionEvent = async (reference: string) => {
         }
     })
 
-    // notify author
-    const authorId = requests[0].authorId;
-    pubsub.publish(`${authorId}_INBOX`, {
-        userInbox: requests
-    });
+    // trigger subscription events
+    pubsub.publish(`${thread.recipient.officeId}_OFFICE_INBOX`, { officeInbox: {
+        referenceNum: thread.refSlipNum,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
 
-    requests.forEach(request => {
-        // notify concerned offices
-        if (request.broadcast) pubsub.publish(`${request.recipient.officeId}_OFFICE_INBOX`, { 
-            officeInbox: [request]
-        });
-        // notify concerned officer
-        else if (request.recipientUserId !== null) pubsub.publish(`${request.recipientUserId}_INBOX`, { 
-            userInbox: [request]  
-        });
-        // notify concerned sections
-        else pubsub.publish(`${request.recipientId}_SECTION_INBOX`, { 
-            sectionInbox: [request]
-        });
-    })
-}
+    pubsub.publish(`THREAD_${thread.refId}`, { liveThread: {
+        referenceNum: thread.refId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
 
-export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {
-    return await dbClient.thread.update({
-        where: {
-            refId: args.threadId
-        },
-        data: {
-            active: false
-        }
-    })
+    return thread;
 }
 
 export const resolveRestoreThread = async (_: any, args: { threadId: string }) => {
-    return await dbClient.thread.update({
+    const thread = await dbClient.thread.update({
         where: {
             refId: args.threadId
         },
         data: {
             active: true
+        },
+        include: {
+            recipient: {
+                select: {
+                    officeId: true
+                }
+            }
         }
     })
+
+    // trigger subscription events
+    pubsub.publish(`${thread.recipient.officeId}_OFFICE_INBOX`, { officeInbox: {
+        referenceNum: thread.refSlipNum,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
+
+    pubsub.publish(`THREAD_${thread.refId}`, { liveThread: {
+        referenceNum: thread.refId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
+
+    return thread;
 }
 
 export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => {
@@ -366,6 +413,7 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
             refId: args.data.threadId
         },
         select: {
+            refId: true,
             revision: true,
             authorId: true,
             subject: true,
@@ -411,9 +459,11 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
     })
 
     // notify subscriptions
-    pubsub.publish(args.data.threadId, { 
-        threadMessage: message
-    });
+    pubsub.publish(`THREAD_${thread.refId}`, { liveThread: {
+        referenceNum: thread.refId,
+        eventType: "MESSAGE_SENT",
+        timestamp: new Date().toISOString()
+    }})
 
     // notify recipient
     const sender = await dbClient.userAccounts.findUnique({
@@ -507,7 +557,7 @@ export const resolveGetThreadById = async (_: any, args: { uid: string }) => {
 export const resolveUpdateThreadStatus = async (_: any, args: { uid: string, statusId: number, attachments: boolean }) => {
     const completedId = [1, 3];
 
-    return await dbClient.thread.update({
+    const thread = await dbClient.thread.update({
         where: {
             refId: args.uid
         },
@@ -521,8 +571,29 @@ export const resolveUpdateThreadStatus = async (_: any, args: { uid: string, sta
                     statusId: args.statusId
                 }
             }
+        },
+        include: {
+            recipient: {
+                select: {
+                    officeId: true
+                }
+            }
         }
     })
+
+    pubsub.publish(`${thread.recipient.officeId}_OFFICE_INBOX`, { officeInbox: {
+        referenceNum: thread.refSlipNum,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
+
+    pubsub.publish(`THREAD_${thread.refId}`, { liveThread: {
+        referenceNum: thread.refId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }})
+
+    return thread;
 }
 
 
@@ -1188,14 +1259,6 @@ export const resolveSubscribeOfficeInbox = (_: any, args: { officeId: number }) 
     return pubsub.asyncIterator([`${args.officeId}_OFFICE_INBOX`]);
 }
 
-export const resolveSubscribeSectionInbox = (_: any, args: { sectionId: number }) => {
-    return pubsub.asyncIterator([`${args.sectionId}_SECTION_INBOX`]);
-}
-
-export const resolveSubscribeUserInbox = (_: any, args: { userId: string }) => {
-    return pubsub.asyncIterator([`${args.userId}_INBOX`]);
-}
-
 export const resolveSubscribeThreadMsg = (_: any, args: { threadId: string }) => {
-    return pubsub.asyncIterator([args.threadId]);
+    return pubsub.asyncIterator([`THREAD_${args.threadId}`]);
 }

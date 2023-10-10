@@ -470,3 +470,18 @@ export const AnalyticsObject: GraphQLObjectType = new GraphQLObjectType<Thread>(
         }
     })
 })
+
+export const SubscriptionMessageObject: GraphQLObjectType = new GraphQLObjectType({
+    name: "SubscriptionMessage",
+    fields: () => ({
+        referenceNum: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        eventType: {
+            type: new GraphQLNonNull(GraphQLString)
+        },
+        timestamp: {
+            type: new GraphQLNonNull(GraphQLString)
+        }
+    })
+})
