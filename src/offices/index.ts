@@ -1,2 +1,2 @@
-export { queryFields as officesQueryFields } from './views';
-export { mutationFields as officesMutationFields } from './views';
+export { queryFields as officesQueries } from './views';
+export { mutationFields as officesMutations } from './views';

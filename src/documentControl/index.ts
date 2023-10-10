@@ -1,2 +1,3 @@
-export { mutationFields as docControlMutationFields } from './views'
-export { queryFields as docControlQueryFields } from './views'
+export { mutationFields as docControlMutations } from './views';
+export { queryFields as docControlQueries } from './views';
+export { subscriptionFields as docControlSubscriptions } from './views';

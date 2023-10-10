@@ -6,6 +6,7 @@ import {
     ThreadUpdateInput 
 } from "./validation"
 import webpush from 'web-push';
+import pubsub from "../pubsub";
 
 
 // =============================================== Thread Status Controller ================================================ //
@@ -270,6 +271,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         threads.push(thread); // collect created threads
     }
 
+    await triggerSubscriptionEvent(refNum); // trigger subscription event
+
     return threads;
 }
 
@@ -286,13 +289,44 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
             docTypeId: args.data.docTypeId,
             purposeId: args.data.purposeId
         }
-    })
+    });
+
+    await triggerSubscriptionEvent(args.data.refNum); // trigger subscription event
 
     return dbClient.thread.findMany({
         where: {
             refSlipNum: args.data.refNum
         }
     });
+}
+
+const triggerSubscriptionEvent = async (reference: string) => {
+    const message = `${reference} is created or modified.`;
+    const requests = await dbClient.thread.findMany({
+        where: {
+            refSlipNum: reference
+        },
+        include: {
+            recipient: {
+                select: {
+                    officeId: true
+                }
+            }
+        }
+    })
+
+    // notify author
+    const authorId = requests[0].authorId;
+    pubsub.publish(`${authorId}_INBOX`, { message });
+
+    requests.forEach(request => {
+        // notify concerned offices
+        if (request.broadcast) pubsub.publish(`${request.recipient.officeId}_OFFICE_INBOX`, { message });
+        // notify concerned officer
+        else if (request.recipientUserId !== null) pubsub.publish(`${request.recipientUserId}_INBOX`, { message });
+        // notify concerned sections
+        else pubsub.publish(`${request.recipientId}_SECTION_INBOX`, { message });
+    })
 }
 
 export const resolveArchiveThread = async (_: any, args: { threadId: string }) => {
@@ -367,6 +401,9 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
             }
         }
     })
+
+    // notify subscriptions
+    pubsub.publish(args.data.threadId, { message });
 
     // notify recipient
     const sender = await dbClient.userAccounts.findUnique({
@@ -444,7 +481,7 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
             .catch(err => console.error(err));
     }
 
-   
+    
     return message;
 }
 
@@ -1134,4 +1171,21 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
             dateCreated: 'asc'
         }
     })
+}
+
+// ============================ SUBSCRIPTIONS ============================== //
+export const resolveSubscribeOfficeInbox = async (_: any, args: { officeId: number }) => {
+    return pubsub.asyncIterator([`${args.officeId}_OFFICE_INBOX`]);
+}
+
+export const resolveSubscribeSectionInbox = async (_: any, args: { sectionId: number }) => {
+    return pubsub.asyncIterator([`${args.sectionId}_SECTION_INBOX`]);
+}
+
+export const resolveSubscribeUserInbox = async (_: any, args: { userId: string }) => {
+    return pubsub.asyncIterator([`${args.userId}_INBOX`]);
+}
+
+export const resolveSubscribeThreadMsg = async (_: any, args: { threadId: string }) => {
+    return pubsub.asyncIterator([args.threadId]);
 }

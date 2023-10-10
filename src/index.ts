@@ -18,12 +18,13 @@ import {
 } from "graphql";
 // project imports
 import { 
-    officesMutationFields, 
-    officesQueryFields 
+    officesQueries, 
+    officesMutations 
 } from "./offices";
 import { 
-    docControlMutationFields, 
-    docControlQueryFields 
+    docControlMutations, 
+    docControlQueries,
+    docControlSubscriptions
 } from "./documentControl";
 import dbClient from "./database";
 
@@ -33,17 +34,23 @@ dotenv.config();
 // the WebSocket server.
 const RootMutation: GraphQLObjectType = new GraphQLObjectType({
     name: "Mutation",
-    fields: () => (merge(officesMutationFields, docControlMutationFields))
+    fields: () => (merge(officesMutations, docControlMutations))
 })
 
 const RootQueries: GraphQLObjectType = new GraphQLObjectType({
     name: "Query",
-    fields: () => (merge(officesQueryFields, docControlQueryFields))
+    fields: () => (merge(officesQueries, docControlQueries))
+})
+
+const RootSubscriptions: GraphQLObjectType = new GraphQLObjectType({
+    name: "Subscriptions",
+    fields: () => (merge(docControlSubscriptions))
 })
 
 const schema = new GraphQLSchema({
     mutation: RootMutation,
-    query: RootQueries
+    query: RootQueries,
+    subscription: RootSubscriptions
 })
 
 // Create an Express app and HTTP server; we will attach both the WebSocket

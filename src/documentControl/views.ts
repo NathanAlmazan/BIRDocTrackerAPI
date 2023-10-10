@@ -11,6 +11,7 @@ import {
     DocumentStatusObject, 
     DocumentTypeObject, 
     MessagesObject, 
+    SubscriptionMessageObject, 
     ThreadObject,
     ThreadTagObject
 } from "./model";
@@ -37,6 +38,9 @@ import {
     resolveRestoreThread, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
+    resolveSubscribeOfficeInbox, 
+    resolveSubscribeSectionInbox, 
+    resolveSubscribeThreadMsg, 
     resolveThreadPurposeAnalytics, 
     resolveThreadTypeAnalytics, 
     resolveUpdateThread, 
@@ -326,5 +330,44 @@ export const queryFields = {
             }
         },
         resolve: resolveGetThreadSummary
+    }
+}
+
+export const subscriptionFields = {
+    officeInbox: {
+        type: SubscriptionMessageObject,
+        args: {
+            officeId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            }
+        },
+        resolve: resolveSubscribeOfficeInbox
+    },
+    sectionInbox: {
+        type: SubscriptionMessageObject,
+        args: {
+            sectionId: {
+                type: new GraphQLNonNull(GraphQLInt)
+            }
+        },
+        resolve: resolveSubscribeSectionInbox
+    },
+    userInbox: {
+        type: SubscriptionMessageObject,
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveSubscribeSectionInbox
+    },
+    threadMessage: {
+        type: MessagesObject,
+        args: {
+            threadId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveSubscribeThreadMsg
     }
 }
