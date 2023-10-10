@@ -80,6 +80,9 @@ export const DocumentTypeObject: GraphQLObjectType = new GraphQLObjectType<Docum
                 })
             }
         },
+        actionable: {
+            type: GraphQLBoolean
+        },
         threadCount: {
             type: GraphQLInt,
             resolve: async (parent) => {
@@ -105,9 +108,6 @@ export const DocumentPurposeObject: GraphQLObjectType = new GraphQLObjectType<Do
         },
         purposeName: {
             type: new GraphQLNonNull(GraphQLString)
-        },
-        actionable: {
-            type: GraphQLBoolean
         },
         threads: {
             type: new GraphQLList(ThreadObject),
