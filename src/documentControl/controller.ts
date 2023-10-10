@@ -7,6 +7,7 @@ import {
 } from "./validation"
 import webpush from 'web-push';
 import pubsub from "../pubsub";
+import { Thread } from "@prisma/client";
 
 
 // =============================================== Thread Status Controller ================================================ //
@@ -301,7 +302,6 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
 }
 
 const triggerSubscriptionEvent = async (reference: string) => {
-    const message = `${reference} is created or modified.`;
     const requests = await dbClient.thread.findMany({
         where: {
             refSlipNum: reference
@@ -317,20 +317,22 @@ const triggerSubscriptionEvent = async (reference: string) => {
 
     // notify author
     const authorId = requests[0].authorId;
-    pubsub.publish(`${authorId}_INBOX`, { message });
+    pubsub.publish(`${authorId}_INBOX`, {
+        userInbox: requests
+    });
 
     requests.forEach(request => {
         // notify concerned offices
         if (request.broadcast) pubsub.publish(`${request.recipient.officeId}_OFFICE_INBOX`, { 
-            officeInbox: { message } 
+            officeInbox: [request]
         });
         // notify concerned officer
         else if (request.recipientUserId !== null) pubsub.publish(`${request.recipientUserId}_INBOX`, { 
-            userInbox: { message }  
+            userInbox: [request]  
         });
         // notify concerned sections
         else pubsub.publish(`${request.recipientId}_SECTION_INBOX`, { 
-            sectionInbox: { message }
+            sectionInbox: [request]
         });
     })
 }
@@ -410,7 +412,7 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
 
     // notify subscriptions
     pubsub.publish(args.data.threadId, { 
-        threadMessage: { message }
+        threadMessage: message
     });
 
     // notify recipient

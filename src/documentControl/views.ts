@@ -11,7 +11,6 @@ import {
     DocumentStatusObject, 
     DocumentTypeObject, 
     MessagesObject, 
-    SubscriptionMessageObject, 
     ThreadObject,
     ThreadTagObject
 } from "./model";
@@ -51,6 +50,8 @@ import {
     ThreadCreateInput, 
     ThreadUpdateInput
 } from "./validation";
+import dbClient from "../database";
+import pubsub from "../pubsub";
 
 
 export const mutationFields = {
@@ -330,12 +331,24 @@ export const queryFields = {
             }
         },
         resolve: resolveGetThreadSummary
+    },
+    testSubscriptions: {
+        type: ThreadObject,
+        resolve: async () => {
+            const threads = await dbClient.thread.findMany({
+                take: 2
+            });
+
+            pubsub.publish('6_OFFICE_INBOX', { officeInbox: threads })
+
+            return null;
+        }
     }
 }
 
 export const subscriptionFields = {
     officeInbox: {
-        type: SubscriptionMessageObject,
+        type: new GraphQLList(ThreadObject),
         args: {
             officeId: {
                 type: new GraphQLNonNull(GraphQLInt)
@@ -344,7 +357,7 @@ export const subscriptionFields = {
         subscribe: resolveSubscribeOfficeInbox
     },
     sectionInbox: {
-        type: SubscriptionMessageObject,
+        type: new GraphQLList(ThreadObject),
         args: {
             sectionId: {
                 type: new GraphQLNonNull(GraphQLInt)
@@ -353,7 +366,7 @@ export const subscriptionFields = {
         subscribe: resolveSubscribeSectionInbox
     },
     userInbox: {
-        type: SubscriptionMessageObject,
+        type: new GraphQLList(ThreadObject),
         args: {
             userId: {
                 type: new GraphQLNonNull(GraphQLString)
