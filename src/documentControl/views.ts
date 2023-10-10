@@ -331,18 +331,6 @@ export const queryFields = {
             }
         },
         resolve: resolveGetThreadSummary
-    },
-    testSubscriptions: {
-        type: ThreadObject,
-        resolve: async () => {
-            const threads = await dbClient.thread.findMany({
-                take: 2
-            });
-
-            pubsub.publish('6_OFFICE_INBOX', { officeInbox: threads })
-
-            return null;
-        }
     }
 }
 
