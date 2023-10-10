@@ -321,11 +321,17 @@ const triggerSubscriptionEvent = async (reference: string) => {
 
     requests.forEach(request => {
         // notify concerned offices
-        if (request.broadcast) pubsub.publish(`${request.recipient.officeId}_OFFICE_INBOX`, { message });
+        if (request.broadcast) pubsub.publish(`${request.recipient.officeId}_OFFICE_INBOX`, { 
+            officeInbox: { message } 
+        });
         // notify concerned officer
-        else if (request.recipientUserId !== null) pubsub.publish(`${request.recipientUserId}_INBOX`, { message });
+        else if (request.recipientUserId !== null) pubsub.publish(`${request.recipientUserId}_INBOX`, { 
+            userInbox: { message }  
+        });
         // notify concerned sections
-        else pubsub.publish(`${request.recipientId}_SECTION_INBOX`, { message });
+        else pubsub.publish(`${request.recipientId}_SECTION_INBOX`, { 
+            sectionInbox: { message }
+        });
     })
 }
 
@@ -403,7 +409,9 @@ export const resolveCreateMessage = async (_: any, args: MessageCreateInput) => 
     })
 
     // notify subscriptions
-    pubsub.publish(args.data.threadId, { message });
+    pubsub.publish(args.data.threadId, { 
+        threadMessage: { message }
+    });
 
     // notify recipient
     const sender = await dbClient.userAccounts.findUnique({
@@ -1174,18 +1182,18 @@ export const resolveGetThreadSummary = async (_: any, args: { userId: string, da
 }
 
 // ============================ SUBSCRIPTIONS ============================== //
-export const resolveSubscribeOfficeInbox = async (_: any, args: { officeId: number }) => {
+export const resolveSubscribeOfficeInbox = (_: any, args: { officeId: number }) => {
     return pubsub.asyncIterator([`${args.officeId}_OFFICE_INBOX`]);
 }
 
-export const resolveSubscribeSectionInbox = async (_: any, args: { sectionId: number }) => {
+export const resolveSubscribeSectionInbox = (_: any, args: { sectionId: number }) => {
     return pubsub.asyncIterator([`${args.sectionId}_SECTION_INBOX`]);
 }
 
-export const resolveSubscribeUserInbox = async (_: any, args: { userId: string }) => {
+export const resolveSubscribeUserInbox = (_: any, args: { userId: string }) => {
     return pubsub.asyncIterator([`${args.userId}_INBOX`]);
 }
 
-export const resolveSubscribeThreadMsg = async (_: any, args: { threadId: string }) => {
+export const resolveSubscribeThreadMsg = (_: any, args: { threadId: string }) => {
     return pubsub.asyncIterator([args.threadId]);
 }

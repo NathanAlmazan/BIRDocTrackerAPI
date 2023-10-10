@@ -341,7 +341,7 @@ export const subscriptionFields = {
                 type: new GraphQLNonNull(GraphQLInt)
             }
         },
-        resolve: resolveSubscribeOfficeInbox
+        subscribe: resolveSubscribeOfficeInbox
     },
     sectionInbox: {
         type: SubscriptionMessageObject,
@@ -350,7 +350,7 @@ export const subscriptionFields = {
                 type: new GraphQLNonNull(GraphQLInt)
             }
         },
-        resolve: resolveSubscribeSectionInbox
+        subscribe: resolveSubscribeSectionInbox
     },
     userInbox: {
         type: SubscriptionMessageObject,
@@ -359,7 +359,7 @@ export const subscriptionFields = {
                 type: new GraphQLNonNull(GraphQLString)
             }
         },
-        resolve: resolveSubscribeSectionInbox
+        subscribe: resolveSubscribeSectionInbox
     },
     threadMessage: {
         type: MessagesObject,
@@ -368,6 +368,6 @@ export const subscriptionFields = {
                 type: new GraphQLNonNull(GraphQLString)
             }
         },
-        resolve: resolveSubscribeThreadMsg
+        subscribe: resolveSubscribeThreadMsg
     }
 }

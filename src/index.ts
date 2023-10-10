@@ -43,7 +43,7 @@ const RootQueries: GraphQLObjectType = new GraphQLObjectType({
 })
 
 const RootSubscriptions: GraphQLObjectType = new GraphQLObjectType({
-    name: "Subscriptions",
+    name: "Subscription",
     fields: () => (merge(docControlSubscriptions))
 })
 
