@@ -310,6 +310,7 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
         },
         select: {
             refId: true,
+            authorId: true,
             recipient: {
                 select: {
                     officeId: true
@@ -332,6 +333,12 @@ export const resolveUpdateThread = async (_: any, args: ThreadUpdateInput) => {
             timestamp: new Date().toISOString()
         }})
     })
+
+    pubsub.publish(`${threads[0].authorId}_AUTHOR_INBOX`, { authorInbox: {
+        referenceNum: threads[0].authorId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }});
 
     return dbClient.thread.findMany({
         where: {
@@ -370,6 +377,12 @@ export const resolveArchiveThread = async (_: any, args: { threadId: string }) =
         timestamp: new Date().toISOString()
     }})
 
+    pubsub.publish(`${thread.authorId}_AUTHOR_INBOX`, { authorInbox: {
+        referenceNum: thread.authorId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }});
+
     return thread;
 }
 
@@ -402,6 +415,12 @@ export const resolveRestoreThread = async (_: any, args: { threadId: string }) =
         eventType: "THREAD_UPDATED",
         timestamp: new Date().toISOString()
     }})
+
+    pubsub.publish(`${thread.authorId}_AUTHOR_INBOX`, { authorInbox: {
+        referenceNum: thread.authorId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }});
 
     return thread;
 }
@@ -592,6 +611,12 @@ export const resolveUpdateThreadStatus = async (_: any, args: { uid: string, sta
         eventType: "THREAD_UPDATED",
         timestamp: new Date().toISOString()
     }})
+
+    pubsub.publish(`${thread.authorId}_AUTHOR_INBOX`, { authorInbox: {
+        referenceNum: thread.authorId,
+        eventType: "THREAD_UPDATED",
+        timestamp: new Date().toISOString()
+    }});
 
     return thread;
 }
@@ -1261,4 +1286,8 @@ export const resolveSubscribeOfficeInbox = (_: any, args: { officeId: number }) 
 
 export const resolveSubscribeThreadMsg = (_: any, args: { threadId: string }) => {
     return pubsub.asyncIterator([`THREAD_${args.threadId}`]);
+}
+
+export const resolveSubscribeAuthorInbox = (_: any, args: { authorId: string }) => {
+    return pubsub.asyncIterator([`${args.authorId}_AUTHOR_INBOX`]);
 }
