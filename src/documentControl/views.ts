@@ -38,6 +38,7 @@ import {
     resolveRestoreThread, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
+    resolveSubscribeAuthorInbox, 
     resolveSubscribeOfficeInbox, 
     resolveSubscribeThreadMsg, 
     resolveThreadPurposeAnalytics, 
@@ -352,5 +353,14 @@ export const subscriptionFields = {
             }
         },
         subscribe: resolveSubscribeThreadMsg
+    },
+    authorInbox: {
+        type: SubscriptionMessageObject,
+        args: {
+            authorId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        subscribe: resolveSubscribeAuthorInbox
     }
 }
