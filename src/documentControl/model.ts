@@ -192,6 +192,9 @@ export const ThreadObject: GraphQLObjectType = new GraphQLObjectType<Thread>({
         active: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },
+        actionable: {
+            type: GraphQLBoolean
+        },
         purposeNotes: {
             type: GraphQLString
         },

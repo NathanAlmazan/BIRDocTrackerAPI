@@ -107,6 +107,7 @@ model Thread {
   purposeNotes    String?
   attachments     Boolean         @default(true)
   completed       Boolean         @default(false)
+  actionable      Boolean         @default(true)
   active          Boolean         @default(true)
   dateCreated     DateTime        @db.Timestamp(3) @default(now())
   dateUpdated     DateTime        @db.Timestamp(3) @updatedAt

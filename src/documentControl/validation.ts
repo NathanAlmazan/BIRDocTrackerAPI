@@ -19,7 +19,7 @@ export interface ThreadCreateInput {
         recipientId: number[];
         docTypeId: number;
         attachments: boolean;
-        completed: boolean;
+        actionable: boolean;
         dateDue: Date;
         purposeId: number;
         recipientUserId: string[];
@@ -52,7 +52,7 @@ export const ThreadCreateInput: GraphQLInputObjectType  = new GraphQLInputObject
         attachments: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },
-        completed: {
+        actionable: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },
         dateDue: {

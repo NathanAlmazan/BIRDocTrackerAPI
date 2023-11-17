@@ -36,6 +36,7 @@ import {
     resolveGetThreadById, 
     resolveGetThreadSummary, 
     resolveRestoreThread, 
+    resolveSearchThread, 
     resolveSetMessageAsRead, 
     resolveStatusAnalytics, 
     resolveSubscribeAuthorInbox, 
@@ -246,6 +247,18 @@ export const queryFields = {
             }
         },
         resolve: resolveGetCreatedThread
+    },
+    searchThread: {
+        type: new GraphQLList(ThreadObject),
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            },
+            query: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveSearchThread
     },
     getAllThread: {
         type: new GraphQLList(ThreadObject),

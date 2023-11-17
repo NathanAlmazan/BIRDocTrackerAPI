@@ -7,7 +7,6 @@ import {
 } from "./validation"
 import webpush from 'web-push';
 import pubsub from "../pubsub";
-import { Thread } from "@prisma/client";
 
 
 // =============================================== Thread Status Controller ================================================ //
@@ -218,6 +217,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
     // get the recipient office section when set to broadcast
     const threads = []
     for (let i = 0; i < args.data.recipientId.length; i++) {
+        // get actionable status
+        const actionable = args.data.actionable || type.actionable
 
         // identify recipient
         let recipientId = args.data.recipientId[i];
@@ -243,6 +244,7 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
         // get initial status based on purpose
         let status = 2;
         if (purpose.initStatusId) status = purpose.initStatusId;
+        else if (!actionable) status = 3;
 
         const thread = await dbClient.thread.create({
             data: {
@@ -256,7 +258,8 @@ export const resolveCreateThread = async (_: any, args: ThreadCreateInput) => {
                 dateDue: args.data.dateDue,
                 refSlipNum: refNum,
                 statusId: status,
-                completed: !type.actionable,
+                completed: !actionable,
+                actionable: actionable,
                 recipientId: recipientId,
                 recipientUserId: officers.find(officer => officer.officeId === recipientId)?.accountId,
                 broadcast: broadcast,
@@ -632,20 +635,16 @@ export const resolveGetCreatedThread = async (_: any, args: { userId: string, ty
         },
         orderBy: {
             refSlipNum: 'asc'
-        },
-        include: {
-            status: true,
-            docType: true
         }
     })
 
     switch (args.type) {
         case 'pending':
-            return inboxes.filter(thread => !thread.completed && thread.docType.actionable);   
+            return inboxes.filter(thread => !thread.completed && thread.actionable);   
         case 'memos':
-            return inboxes.filter(thread => !thread.docType.actionable);
+            return inboxes.filter(thread => !thread.actionable);
         case "finished":
-            return inboxes.filter(thread => thread.completed && thread.docType.actionable);
+            return inboxes.filter(thread => thread.completed && thread.actionable);
         default:
             return inboxes;
     }
@@ -714,23 +713,130 @@ export const resolveGetInboxThread = async (_: any, args: { userId: string, type
         },
         orderBy: {
             dateDue: 'desc'
-        },
-        include: {
-            status: true,
-            docType: true
         }
     })
 
     switch (args.type) {
         case 'pending':
-            return inboxes.filter(thread => !thread.completed && thread.docType.actionable);    
+            return inboxes.filter(thread => !thread.completed && thread.actionable);    
         case 'memos':
-            return inboxes.filter(thread => !thread.docType.actionable);
+            return inboxes.filter(thread => !thread.actionable);
         case "finished":
-            return inboxes.filter(thread => thread.completed && thread.docType.actionable);
+            return inboxes.filter(thread => thread.completed && thread.actionable);
         default:
             return inboxes;
     }
+}
+
+export const resolveSearchThread = async (_: any, args: { userId: string, query: string }) => {
+    // fetch user office
+    const user = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: args.userId
+        },
+        select: {
+            accountId: true,
+            officeId: true,
+            section: {
+                select: {
+                    officeId: true
+                }
+            }
+        }
+    })
+
+    if (!user) throw new GraphQLError('User does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    // fetch office default
+    const defaultOffice = await dbClient.officeSections.findFirst({
+        where: {
+            AND: {
+                sectionName: "default",
+                officeId: user.section.officeId
+            }
+        },
+        select: {
+            sectionId: true
+        }
+    })
+
+    if (!defaultOffice) throw new GraphQLError('Office does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    return await dbClient.thread.findMany({
+        where: {
+            AND: [
+                {
+                    OR: [
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: null
+                        },
+                        {
+                            recipientId: defaultOffice.sectionId,
+                            broadcast: true
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
+                        },
+                        {
+                            authorId: args.userId
+                        }
+                    ]
+                },
+                {
+                    OR: [
+                        {
+                            subject: {
+                                contains: args.query,
+                                mode: 'insensitive'
+                            }
+                        },
+                        {
+                            refSlipNum: {
+                                contains: args.query,
+                                mode: 'insensitive'
+                            }
+                        },
+                        {
+                            author: {
+                                firstName: {
+                                    contains: args.query,
+                                    mode: 'insensitive'
+                                }
+                            }
+                        },
+                        {
+                            author: {
+                                lastName: {
+                                    contains: args.query,
+                                    mode: 'insensitive'
+                                }
+                            }
+                        },
+                        {
+                            messages: {
+                                some: {
+                                    message: {
+                                        contains: args.query,
+                                        mode: 'insensitive'
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    })
 }
 
 type NotificationType = "unread" | "approval" | "overdue";
@@ -865,9 +971,7 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
 export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
     if (!args.memos) return await dbClient.thread.findMany({
         where: {
-            docType: {
-                actionable: true
-            }
+            actionable: true
         },
         orderBy: {
             dateCreated: 'asc'
@@ -875,9 +979,7 @@ export const resolveGetAllInbox = async (_: any, args: { memos?: boolean }) => {
     });
     else return await dbClient.thread.findMany({
         where: {
-            docType: {
-                actionable: false
-            }
+            actionable: false
         },
         orderBy: {
             dateCreated: 'asc'

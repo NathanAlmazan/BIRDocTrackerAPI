@@ -257,17 +257,17 @@
     semver "^7.3.5"
     tar "^6.1.11"
 
-"@prisma/client@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-5.1.0.tgz#6c378a2b7ecdeab6b3f24179484980257beac25d"
-  integrity sha512-aIxuXlH3p3Vy91buodQhYgAD9m0yuxJzpXMhc1ejQ/WN3pNNWzBA0iDcBObLq8DMdszcXmoLAk3hiRq/ZwBsOw==
+"@prisma/client@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-5.6.0.tgz#1c15932250d5658fe0127e62faf4ecd96a877259"
+  integrity sha512-mUDefQFa1wWqk4+JhKPYq8BdVoFk9NFMBXUI8jAkBfQTtgx8WPx02U2HB/XbAz3GSUJpeJOKJQtNvaAIDs6sug==
   dependencies:
-    "@prisma/engines-version" "5.1.0-28.a9b7003df90aa623086e4d6f4e43c72468e6339b"
+    "@prisma/engines-version" "5.6.0-32.e95e739751f42d8ca026f6b910f5a2dc5adeaeee"
 
-"@prisma/engines-version@5.1.0-28.a9b7003df90aa623086e4d6f4e43c72468e6339b":
-  version "5.1.0-28.a9b7003df90aa623086e4d6f4e43c72468e6339b"
-  resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-5.1.0-28.a9b7003df90aa623086e4d6f4e43c72468e6339b.tgz#0a6400d709a64cc43b076f0567715f459fadd5bc"
-  integrity sha512-jTwE2oy1yjICmTfnCR0ASIpuMZXZ18sUzQXB7V0RMbrM9OlcmbUwXPuYhnxXuWN8XwRmujeIhsXs/Zeh+fjPOQ==
+"@prisma/engines-version@5.6.0-32.e95e739751f42d8ca026f6b910f5a2dc5adeaeee":
+  version "5.6.0-32.e95e739751f42d8ca026f6b910f5a2dc5adeaeee"
+  resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-5.6.0-32.e95e739751f42d8ca026f6b910f5a2dc5adeaeee.tgz#57b003ab5e1ea1523b5cdd7f06b24ebcf5c7fd8c"
+  integrity sha512-UoFgbV1awGL/3wXuUK3GDaX2SolqczeeJ5b4FVec9tzeGbSWJboPSbT0psSrmgYAKiKnkOPFSLlH6+b+IyOwAw==
 
 "@prisma/engines@5.1.0":
   version "5.1.0"
