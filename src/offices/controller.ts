@@ -76,22 +76,24 @@ export const resolveDeleteOffice = async (_: any, args: { id: number }) => {
     })
 }
 
-export const resolveCreateOfficeSection = async (_: any, args: { officeId: number, sectionName: string }) => {
+export const resolveCreateOfficeSection = async (_: any, args: { officeId: number, sectionName: string, positions: number[] }) => {
     return await dbClient.officeSections.create({
         data: {
             sectionName: args.sectionName,
-            officeId: args.officeId
+            officeId: args.officeId,
+            positions: args.positions.map(pos => pos.toString()).join(';')
         }
     })
 }
 
-export const resolveUpdateOfficeSection = async (_: any, args: { sectionId: number, sectionName: string }) => {
+export const resolveUpdateOfficeSection = async (_: any, args: { sectionId: number, sectionName: string, positions: number[] }) => {
     return await dbClient.officeSections.update({
         where: {
             sectionId: args.sectionId,
         },
         data: {
-            sectionName: args.sectionName
+            sectionName: args.sectionName,
+            positions: args.positions.map(pos => pos.toString()).join(';')
         }
     })
 }

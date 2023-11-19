@@ -80,6 +80,9 @@ export const mutationFields = {
             },
             sectionName: {
                 type: new GraphQLNonNull(GraphQLString)
+            },
+            positions: {
+                type: new GraphQLList(GraphQLInt)
             }
         },
         resolve: resolveCreateOfficeSection
@@ -92,6 +95,9 @@ export const mutationFields = {
             },
             sectionName: {
                 type: new GraphQLNonNull(GraphQLString)
+            },
+            positions: {
+                type: new GraphQLList(GraphQLInt)
             }
         },
         resolve: resolveUpdateOfficeSection

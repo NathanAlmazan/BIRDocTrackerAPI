@@ -21,6 +21,7 @@ model OfficeSections {
   sectionId       Int         @id @default(autoincrement())
   sectionName     String      @db.VarChar(100)
   officeId        Int
+  positions        String?
   refNum          String?
   office          BirOffices  @relation(fields: [officeId], references: [officeId], onDelete: Cascade)
   employees       UserAccounts[]

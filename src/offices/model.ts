@@ -63,6 +63,21 @@ export const OfficeSectionObject: GraphQLObjectType = new GraphQLObjectType<Offi
         admin: {
             type: new GraphQLNonNull(GraphQLBoolean)
         },
+        positions: {
+            type: new GraphQLList(RoleObject),
+            resolve: async (parent) => {
+                if (!parent.positions) return null;
+
+                const roleIds = parent.positions.split(';').map(id => parseInt(id, 10));
+                return await dbClient.roles.findMany({
+                    where: {
+                        roleId: {
+                            in: roleIds
+                        }
+                    }
+                })
+            }
+        },
         sectionOffice: {
             type: BirOfficeObject,
             resolve: async (parent) => {
