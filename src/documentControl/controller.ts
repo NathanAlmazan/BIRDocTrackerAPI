@@ -893,12 +893,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                             recipientUserId: null
                         },
                         {
-                            recipientId: user.officeId,
-                            recipientUserId: user.accountId
-                        },
-                        {
                             recipientId: defaultOffice.sectionId,
                             broadcast: true
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         },
                         {
                             authorId: user.accountId
@@ -924,12 +924,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                             recipientUserId: null
                         },
                         {
-                            recipientId: user.officeId,
-                            recipientUserId: user.accountId
-                        },
-                        {
                             recipientId: defaultOffice.sectionId,
                             broadcast: true
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         }
                     ],
                     dateDue: {
@@ -948,12 +948,12 @@ export const resolveGetNotifications = async (_: any, args: { userId: string, ty
                             recipientUserId: null
                         },
                         {
-                            recipientId: user.officeId,
-                            recipientUserId: user.accountId
-                        },
-                        {
                             recipientId: defaultOffice.sectionId,
                             broadcast: true
+                        },
+                        {
+                            recipientId: user.officeId,
+                            recipientUserId: user.accountId
                         }
                     ],
                     purpose: {

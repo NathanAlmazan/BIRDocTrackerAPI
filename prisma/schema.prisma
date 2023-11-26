@@ -73,6 +73,7 @@ model UserAccounts {
   role            Roles            @relation(fields: [roleId], references: [roleId])
   threads         Thread[]
   messages        Messages[]
+  reports         Reports[]
 }
 
 model ThreadHistory {
@@ -142,4 +143,36 @@ model MessageFiles {
   fileName        String          @db.VarChar(150)
   fileType        String          @db.VarChar(20)
   message         Messages        @relation(fields: [msgId], references: [msgId])
+}
+
+model Schedules {
+  schedId         String          @id @db.Uuid @default(uuid()) 
+  subject         String          @db.VarChar(255)  
+  description     String  
+  type            String          @db.VarChar(20)
+  repeat          String          @db.VarChar(20)
+  recipientIds    String
+  dateStart       DateTime
+  dateDue         DateTime
+  reports         Reports[]
+}
+
+model Reports {
+  reportId        BigInt         @id @default(autoincrement())
+  reportDate      DateTime
+  authorId        String         @db.Uuid
+  message         String?
+  schedId         String         @db.Uuid
+  author          UserAccounts   @relation(fields: [authorId], references: [accountId])
+  schedule        Schedules      @relation(fields: [schedId], references: [schedId])
+  files           ReportFiles[]
+}
+
+model ReportFiles {
+  fileId          BigInt          @id @default(autoincrement())
+  reportId        BigInt
+  fileUrl         String
+  fileName        String          @db.VarChar(150)
+  fileType        String          @db.VarChar(20)
+  report          Reports         @relation(fields: [reportId], references: [reportId])
 }

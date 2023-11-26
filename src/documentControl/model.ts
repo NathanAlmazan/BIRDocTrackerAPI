@@ -18,10 +18,10 @@ import {
 } from "graphql"
 import dbClient from "../database"
 import { 
-    BirOfficeObject,
     OfficeSectionObject, 
     UserAccountObject 
 } from "../offices/model"
+import { ScheduleObject } from "../schedules/model"
 
 
 export const DocumentStatusObject: GraphQLObjectType = new GraphQLObjectType<DocumentStatus>({
