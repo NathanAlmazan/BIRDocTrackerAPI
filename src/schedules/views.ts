@@ -6,7 +6,13 @@ import {
 import { ReportObject, ScheduleObject } from "./model";
 import { ReportCreateInput, ScheduleInput } from "./validation";
 import { 
-    resolveCreateSchedule, resolveDeleteSchedule, resolveGetAllSchedules, resolveGetReports, resolveSendReport, resolveUpdateSchedule 
+    resolveCreateSchedule, 
+    resolveDeleteSchedule, 
+    resolveGetAllSchedules, 
+    resolveGetDueReports, 
+    resolveGetReports, 
+    resolveSendReport, 
+    resolveUpdateSchedule 
 } from "./controllers";
 
 
@@ -76,5 +82,14 @@ export const queryFields = {
             }
         },
         resolve: resolveGetReports
+    },
+    getDueReports: {
+        type: new GraphQLList(ScheduleObject),
+        args: {
+            userId: {
+                type: new GraphQLNonNull(GraphQLString)
+            }
+        },
+        resolve: resolveGetDueReports
     }
 }

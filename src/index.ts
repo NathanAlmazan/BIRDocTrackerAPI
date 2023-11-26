@@ -215,7 +215,7 @@ const dueRequests = schedule.scheduleJob('0 0 * * *', function() {
     dbClient.$queryRaw`SELECT thr."refId", thr."subject", thr."broadcast", thr."refSlipNum", sec."sectionId", sec."officeId"
         FROM public."Thread" thr
         LEFT JOIN public."OfficeSections" sec ON thr."recipientId" = sec."sectionId"
-        WHERE "dateDue" > NOW() AND EXTRACT(DAY FROM "dateDue" - NOW()) IN (1, 5, 7);`
+        WHERE "dateDue" > NOW() AND EXTRACT(DAY FROM "dateDue" - NOW()) < 8;`
 
         .then((data) => {
             const result = data as DueThreadQuery[];
@@ -286,7 +286,7 @@ const dueRequests = schedule.scheduleJob('0 0 * * *', function() {
 const dueReports = schedule.scheduleJob('0 0 * * *', function() {
 
     // notifications for monthly report
-    dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Monthly' AND (EXTRACT(DAY FROM "dateDue") - EXTRACT(DAY FROM NOW())) IN (1, 5, 7);`
+    dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Monthly' AND (EXTRACT(DAY FROM "dateDue") - EXTRACT(DAY FROM NOW())) BETWEEN 0 AND 8;`
         .then(data => {
             const result = data as Schedules[];
             
@@ -316,7 +316,7 @@ const dueReports = schedule.scheduleJob('0 0 * * *', function() {
         .catch(err => console.log(err))
 
     // notifications for yearly report
-    dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Yearly' AND EXTRACT(DAY FROM ("dateDue" - NOW())) IN (1, 5, 7);`
+    dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Yearly' AND EXTRACT(DAY FROM ("dateDue" - NOW())) BETWEEN 0 AND 8;`
         .then(data => {
             const result = data as Schedules[];
             

@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import dbClient from "../database";
 import { ReportCreateInput, ScheduleInput } from "./validation";
+import { Schedules } from "@prisma/client";
 
 
 // ====================================== SCHEDULES ========================================= //
@@ -115,4 +116,27 @@ export const resolveGetReports = async (_: any, args: { schedId: string, reportD
             }
         }
     })
+}
+
+export const resolveGetDueReports = async (_: any, args: { userId: string }) => {
+    const user = await dbClient.userAccounts.findUnique({
+        where: {
+            accountId: args.userId
+        },
+        include: {
+            role: true
+        }
+    })
+
+    if (!user) throw new GraphQLError('User does not exist', {
+        extensions: {
+            code: 'BAD_REQUEST'
+        }
+    })
+
+    const monthly: Schedules[] = await dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Monthly' AND (EXTRACT(DAY FROM "dateDue") - EXTRACT(DAY FROM NOW())) BETWEEN 0 AND 8;`
+    const yearly: Schedules[] = await dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Yearly' AND EXTRACT(DAY FROM ("dateDue" - NOW())) BETWEEN 0 AND 8;`
+    const reports = monthly.concat(yearly).filter(report => report.recipientIds.includes(`${user.roleId}.`))
+
+    return reports;
 }
