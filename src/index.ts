@@ -210,7 +210,7 @@ interface DueThreadQuery {
 }
 
 // job to push notifications on thread nearing their due dates
-const dueRequests = schedule.scheduleJob('0 0 * * *', function() {
+const dueRequests = schedule.scheduleJob('0 8 * * *', function() {
 
     dbClient.$queryRaw`SELECT thr."refId", thr."subject", thr."broadcast", thr."refSlipNum", sec."sectionId", sec."officeId"
         FROM public."Thread" thr
@@ -283,7 +283,7 @@ const dueRequests = schedule.scheduleJob('0 0 * * *', function() {
 });
 
 
-const dueReports = schedule.scheduleJob('0 0 * * *', function() {
+const dueReports = schedule.scheduleJob('0 8 * * *', function() {
 
     // notifications for monthly report
     dbClient.$queryRaw`SELECT * FROM public."Schedules" WHERE "repeat" = 'Monthly' AND (EXTRACT(DAY FROM "dateDue") - EXTRACT(DAY FROM NOW())) BETWEEN 0 AND 8;`
