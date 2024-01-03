@@ -246,7 +246,8 @@ export const resolveUserLogin = async (_: any, args: { data: Omit<UserChangePass
             firstName: args.data.firstName,
             lastName: args.data.lastName,
             officeId: args.data.officeId,
-            roleId: args.data.roleId
+            roleId: args.data.roleId,
+            active: true
         }
     })
 
