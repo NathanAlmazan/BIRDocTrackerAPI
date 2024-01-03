@@ -142,7 +142,7 @@ model MessageFiles {
   fileUrl         String
   fileName        String          @db.VarChar(150)
   fileType        String          @db.VarChar(20)
-  message         Messages        @relation(fields: [msgId], references: [msgId])
+  message         Messages        @relation(fields: [msgId], references: [msgId], onDelete: Cascade)
 }
 
 model Schedules {
