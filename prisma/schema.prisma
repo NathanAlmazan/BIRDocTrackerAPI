@@ -132,7 +132,7 @@ model Messages {
   read            Boolean         @default(false)
   dateSent        DateTime        @db.Timestamp(3) @default(now())
   sender          UserAccounts    @relation(fields: [senderId], references: [accountId], onDelete: Cascade)
-  thread          Thread          @relation(fields: [refId], references: [refId])
+  thread          Thread          @relation(fields: [refId], references: [refId], onDelete: Cascade)
   files           MessageFiles[]
 }
 
