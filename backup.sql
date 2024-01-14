@@ -22,6 +22,18 @@ COPY public."BirOffices" ("officeId", "officeName", "refNum") FROM stdin;
 2	Office of the Assistant Regional Director	RR6
 \.
 
+--
+-- Data for Name: DocumentStatus
+--
+
+COPY public."DocumentStatus" ("statusId", "statusLabel") FROM stdin;
+1	Complied/Closed
+2	In-Progress
+3	FYI & No Action Needed
+4	FYI & Strict Compliance
+5	For Approval
+6	For Follow-up
+\.
 
 --
 -- Data for Name: DocumentPurpose
@@ -46,20 +58,6 @@ COPY public."DocumentPurpose" ("purposeId", "purposeName", "initStatusId") FROM 
 2	Comment	\N
 15	Memo with Docket	\N
 10	For Your Information	3
-\.
-
-
---
--- Data for Name: DocumentStatus
---
-
-COPY public."DocumentStatus" ("statusId", "statusLabel") FROM stdin;
-1	Complied/Closed
-2	In-Progress
-3	FYI & No Action Needed
-4	FYI & Strict Compliance
-5	For Approval
-6	For Follow-up
 \.
 
 
@@ -192,7 +190,6 @@ COPY public."OfficeSections" ("sectionId", "sectionName", "officeId", "refNum", 
 95	Client Support Section	17	5	\N
 104	Office of the Division Chief	4	\N	\N
 105	Adminstrative Section	12	\N	\N
-107	default	54	\N	\N
 \.
 
 --
@@ -228,5 +225,5 @@ COPY public."ThreadTags" ("tagId", "tagName") FROM stdin;
 
 COPY public."UserAccounts" ("accountId", "firstName", "lastName", "officeId", password, "resetCode", active, subscription, "roleId", "signImage") FROM stdin;
 255b9194-b964-4e43-b8ba-02b3f4d81ad9	Charlie	Esto	36	$2b$12$KCwRzlP7H8y6zzlQ73PFf.WspgTKJUSUaKo1fBsYr2DtF.N.WvnAi    j1wrhc	t   \N  5	\N
-ee401ea6-fda2-4053-a329-5f532f4bc601	Renato	Molina	1	$2b$12$b/uhDzIWDmFZS678qkUCr.ZQEBceMUvXrdYem.MzFZekW2jootakq	kxncs8	t   \N  1	\N
+ee401ea6-fda2-4053-a329-5f532f4bc601	Renato	Molina	1	$2b$12$b/uhDzIWDmFZS678qkUCr.ZQEBceMUvXrdYem.MzFZekW2jootakq	kxncs   t   \N  1	\N
 \.
